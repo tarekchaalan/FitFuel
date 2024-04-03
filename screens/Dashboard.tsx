@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -10,9 +10,9 @@ import {
   SafeAreaView,
   StatusBar,
   ImageSourcePropType,
-} from 'react-native';
-import Svg, {Path} from 'react-native-svg';
-import {useUser} from '../UserContext';
+} from "react-native";
+import Svg, { Path } from "react-native-svg";
+import { useUser } from "../UserContext";
 
 interface ProfilePictureState {
   uri: string;
@@ -25,26 +25,25 @@ interface WorkoutItemProps {
   navigation: any;
 }
 
-const workoutImage = require('../assets/images/workout.jpg');
-const breakfastImage = require('../assets/images/breakfast.jpg');
-const lunchImage = require('../assets/images/lunch.jpg');
-const dinnerImage = require('../assets/images/dinner.jpg');
+const workoutImage = require("../assets/images/workout.jpg");
+const breakfastImage = require("../assets/images/breakfast.jpg");
+const lunchImage = require("../assets/images/lunch.jpg");
+const dinnerImage = require("../assets/images/dinner.jpg");
+const placeholderImge = require("../assets/images/placeholder.png");
 
-const Dashboard = ({navigation}: {navigation: any}) => {
-  const {currentUser} = useUser();
-  const [fullName, setFullName] = useState<string>('');
-  const defaultProfilePic = require('../assets/images/profile-placeholder.jpg');
+const Dashboard = ({ navigation }: { navigation: any }) => {
+  const { currentUser } = useUser();
+  const [fullName, setFullName] = useState<string>("");
+  const defaultProfilePic = require("../assets/images/profile-placeholder.jpg");
   const [profilePicture, setProfilePicture] = useState(defaultProfilePic);
 
   useEffect(() => {
     if (currentUser) {
-      setFullName(currentUser.displayName || '');
+      setFullName(currentUser.displayName || "");
       const pictureSource =
         currentUser.photoURL ||
-        require('../assets/images/profile-placeholder.jpg');
+        require("../assets/images/profile-placeholder.jpg");
       setProfilePicture(pictureSource);
-    } else {
-      navigation.navigate('Auth');
     }
   }, [currentUser, navigation]);
 
@@ -56,8 +55,8 @@ const Dashboard = ({navigation}: {navigation: any}) => {
           <View style={styles.header}>
             <Image
               source={
-                typeof profilePicture === 'string'
-                  ? {uri: profilePicture}
+                typeof profilePicture === "string"
+                  ? { uri: profilePicture }
                   : profilePicture
               }
               style={styles.profileImage}
@@ -67,8 +66,9 @@ const Dashboard = ({navigation}: {navigation: any}) => {
               <Text style={styles.nameText}>{fullName}</Text>
             </View>
             <TouchableOpacity
-              style={{position: 'absolute', top: '15%', right: '6%'}}
-              onPress={() => navigation.navigate('Preferences')}>
+              style={{ position: "absolute", top: "15%", right: "6%" }}
+              onPress={() => navigation.navigate("Preferences")}
+            >
               <PreferencesIcon />
             </TouchableOpacity>
           </View>
@@ -87,7 +87,7 @@ const Dashboard = ({navigation}: {navigation: any}) => {
             <WorkoutItem
               title="Upper Body"
               muscles="Biceps | Triceps | Back | Shoulders | Chest"
-              imageSource={workoutImage}
+              imageSource={placeholderImge}
               navigation={navigation}
             />
           </View>
@@ -97,21 +97,22 @@ const Dashboard = ({navigation}: {navigation: any}) => {
             <ScrollView
               horizontal
               style={styles.mealItemsContainer}
-              showsHorizontalScrollIndicator={false}>
+              showsHorizontalScrollIndicator={false}
+            >
               <MealItem
                 title="Breakfast"
                 description="Eggs on Avocado Toast"
-                imageSource={breakfastImage}
+                imageSource={placeholderImge}
               />
               <MealItem
                 title="Lunch"
                 description="Chicken Salad"
-                imageSource={lunchImage}
+                imageSource={placeholderImge}
               />
               <MealItem
                 title="Dinner"
                 description="Chicken Quasadilla"
-                imageSource={dinnerImage}
+                imageSource={placeholderImge}
               />
             </ScrollView>
           </View>
@@ -124,19 +125,22 @@ const Dashboard = ({navigation}: {navigation: any}) => {
 
           <TouchableOpacity
             style={styles.navItem}
-            onPress={() => navigation.navigate('Workout')}>
+            onPress={() => navigation.navigate("Workouts")}
+          >
             <WorkoutIcon />
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.navItem}
-            onPress={() => navigation.navigate('Meal')}>
+            onPress={() => navigation.navigate("Meals")}
+          >
             <MealIcon />
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.navItem}
-            onPress={() => navigation.navigate('Profile')}>
+            onPress={() => navigation.navigate("Profile")}
+          >
             <ProfileIcon />
           </TouchableOpacity>
         </View>
@@ -154,8 +158,9 @@ const WorkoutItem = ({
   return (
     <TouchableOpacity
       style={styles.workoutItem}
-      onPress={() => navigation.navigate('Workout')}>
-      <Image source={workoutImage} style={styles.workoutImage} />
+      onPress={() => navigation.navigate("Workouts")}
+    >
+      <Image source={placeholderImge} style={styles.workoutImage} />
       <View style={styles.overlay}>
         <Text style={styles.workoutTitle}>{title}</Text>
         <Text style={styles.workoutMuscles}>{muscles}</Text>
@@ -170,7 +175,7 @@ interface MealItemProps {
   imageSource: ImageSourcePropType;
 }
 
-const MealItem = ({title, description, imageSource}: MealItemProps) => (
+const MealItem = ({ title, description, imageSource }: MealItemProps) => (
   <TouchableOpacity style={styles.mealItem}>
     <Image style={styles.mealImage} source={imageSource} />
     <View style={styles.overlay}>
@@ -234,7 +239,8 @@ const PreferencesIcon = () => (
       stroke="#fff"
       stroke-width="0.528"
       stroke-linecap="round"
-      stroke-linejoin="round"></Path>
+      stroke-linejoin="round"
+    ></Path>
   </Svg>
 );
 // Header
@@ -248,7 +254,7 @@ const PreferencesIcon = () => (
 // marginBottom = 30 == 7%
 // width = 375 == 88%
 
-const screenWidth = Dimensions.get('window').width;
+const screenWidth = Dimensions.get("window").width;
 
 const styles = StyleSheet.create({
   safeArea: {

@@ -20,7 +20,7 @@ const WorkoutSchedule = ({navigation}: {navigation: any}) => {
         <View style={styles.BackContainer}>
           <TouchableOpacity
             style={styles.BackIcon}
-            onPress={() => navigation.navigate('Workout')}>
+            onPress={() => navigation.navigate('Workouts')}>
             <BackIcon />
           </TouchableOpacity>
         </View>

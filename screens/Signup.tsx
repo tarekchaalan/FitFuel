@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,43 +9,43 @@ import {
   KeyboardAvoidingView,
   Animated,
   Alert,
-} from 'react-native';
-import {auth} from '../firebase';
+} from "react-native";
+import { auth } from "../firebase";
 import {
   createUserWithEmailAndPassword,
   updateProfile,
   sendEmailVerification,
-} from 'firebase/auth';
-import {doc, setDoc} from 'firebase/firestore';
-import {firestore} from '../firebase';
-import CountryPicker from 'react-native-country-picker-modal';
-import {CountryCode, Country} from '../assets/types';
-import {AsYouType} from 'libphonenumber-js';
-import Svg, {Path, Circle} from 'react-native-svg';
+} from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
+import { firestore } from "../firebase";
+import CountryPicker from "react-native-country-picker-modal";
+import { CountryCode, Country } from "../assets/types";
+import { AsYouType } from "libphonenumber-js";
+import Svg, { Path, Circle } from "react-native-svg";
 import {
   launchImageLibrary,
   ImageLibraryOptions,
-} from 'react-native-image-picker';
-import {ref, uploadBytes, getDownloadURL} from 'firebase/storage';
-import {storage} from '../firebase';
+} from "react-native-image-picker";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { storage } from "../firebase";
 
-const Signup = ({navigation}: {navigation: any}) => {
+const Signup = ({ navigation }: { navigation: any }) => {
   const [profileImage, setProfileImage] = useState<string | null>(null);
-  const [fullName, setFullName] = useState<string>('');
-  const [username, setUsername] = useState<string>('');
-  const [email, setEmail] = useState<string>('');
-  const [countryCode, setCountryCode] = useState<CountryCode>('US');
+  const [fullName, setFullName] = useState<string>("");
+  const [username, setUsername] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [countryCode, setCountryCode] = useState<CountryCode>("US");
   const [country, setCountry] = useState<Country | null>(null);
-  const [phoneNumber, setPhoneNumber] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
-  const [formattedPhoneNumber, setFormattedPhoneNumber] = useState<string>('');
+  const [phoneNumber, setPhoneNumber] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [formattedPhoneNumber, setFormattedPhoneNumber] = useState<string>("");
   const [passwordVisible, setPasswordVisible] = useState<boolean>(false);
   const rotateValueHolder = new Animated.Value(0);
 
   useEffect(() => {
     // Only set the country code to US if it hasn't been selected yet
     if (!countryCode) {
-      setCountryCode('US');
+      setCountryCode("US");
     }
   }, [countryCode]);
 
@@ -55,7 +55,7 @@ const Signup = ({navigation}: {navigation: any}) => {
   };
 
   const handlePhoneNumberChange = (text: string) => {
-    const formatter = new AsYouType(country ? country.cca2 : 'US');
+    const formatter = new AsYouType(country ? country.cca2 : "US");
     const formatted = formatter.input(text);
     setPhoneNumber(formatter.getNationalNumber());
     setFormattedPhoneNumber(formatted);
@@ -64,15 +64,15 @@ const Signup = ({navigation}: {navigation: any}) => {
   const pickImage = () => {
     // Use ImageLibraryOptions for the options type
     const options: ImageLibraryOptions = {
-      mediaType: 'photo', // Ensure this is a valid value from the 'MediaType' type
+      mediaType: "photo", // Ensure this is a valid value from the 'MediaType' type
       includeBase64: false,
     };
 
-    launchImageLibrary(options, response => {
+    launchImageLibrary(options, (response) => {
       if (response.didCancel) {
-        console.log('User cancelled image picker');
+        console.log("User cancelled image picker");
       } else if (response.errorMessage) {
-        console.log('Image picker error: ', response.errorMessage);
+        console.log("Image picker error: ", response.errorMessage);
       } else {
         // Fallback to null if the uri is undefined
         const imageUri = response.assets?.[0]?.uri ?? null;
@@ -95,7 +95,7 @@ const Signup = ({navigation}: {navigation: any}) => {
       const userCredentials = await createUserWithEmailAndPassword(
         auth,
         email,
-        password,
+        password
       );
       const user = userCredentials.user;
       await updateProfile(user, {
@@ -104,17 +104,17 @@ const Signup = ({navigation}: {navigation: any}) => {
       // Send verification email
       await sendEmailVerification(user, {
         handleCodeInApp: true,
-        url: 'https://nourishfit-planner.firebaseapp.com', // Make sure this is a whitelisted domain
+        url: "https://nourishfit-planner.firebaseapp.com", // Make sure this is a whitelisted domain
       });
       // Upload the profile image and get the URL
-      let profilePictureUrl = '';
+      let profilePictureUrl = "";
       if (profileImage) {
         profilePictureUrl = await uploadImage(profileImage, user.uid);
         // Update user profile with photoURL
-        await updateProfile(user, {photoURL: profilePictureUrl});
+        await updateProfile(user, { photoURL: profilePictureUrl });
       }
       // Save user data, including profile image URL, to Firestore
-      await setDoc(doc(firestore, 'users', user.uid), {
+      await setDoc(doc(firestore, "users", user.uid), {
         fullName: fullName,
         username: username,
         countryCode: countryCode,
@@ -122,9 +122,8 @@ const Signup = ({navigation}: {navigation: any}) => {
         email: email,
         profilePicture: profilePictureUrl,
       });
-      navigation.navigate('MainApp', {screen: 'Preferences'});
-      Alert.alert('Verification email sent. Please check your email.');
-      // Navigate to login screen or other appropriate action
+      Alert.alert("Verification email sent. Please check your email.");
+      navigation.navigate("Preferences"); // Navigate to Preferences after successful signup
     } catch (error) {
       const message = (error as Error).message;
       Alert.alert(message);
@@ -160,7 +159,7 @@ const Signup = ({navigation}: {navigation: any}) => {
           containerButtonStyle={styles.countryPickerButton}
         />
         <Text style={styles.callingCodeText}>
-          +{country ? country.callingCode[0] : '1'}
+          +{country ? country.callingCode[0] : "1"}
         </Text>
       </View>
     );
@@ -173,7 +172,7 @@ const Signup = ({navigation}: {navigation: any}) => {
         <TouchableOpacity onPress={pickImage} style={styles.pfpInput}>
           {profileImage ? (
             <Image
-              source={{uri: profileImage}} // Use uri instead of assets
+              source={{ uri: profileImage }} // Use uri instead of assets
               style={styles.profileImage}
             />
           ) : (
@@ -185,21 +184,21 @@ const Signup = ({navigation}: {navigation: any}) => {
         <TextInput
           placeholder="Full Name"
           value={fullName}
-          onChangeText={text => setFullName(text)}
+          onChangeText={(text) => setFullName(text)}
           placeholderTextColor="#aaaaaa"
           style={styles.input}
         />
         <TextInput
           placeholder="Username"
           value={username}
-          onChangeText={text => setUsername(text)}
+          onChangeText={(text) => setUsername(text)}
           placeholderTextColor="#aaaaaa"
           style={styles.input}
         />
         <TextInput
           placeholder="Email"
           value={email}
-          onChangeText={text => setEmail(text)}
+          onChangeText={(text) => setEmail(text)}
           placeholderTextColor="#aaaaaa"
           style={styles.input}
         />
@@ -218,15 +217,16 @@ const Signup = ({navigation}: {navigation: any}) => {
           <TextInput
             placeholder="Password"
             value={password}
-            onChangeText={text => setPassword(text)}
+            onChangeText={(text) => setPassword(text)}
             placeholderTextColor="#aaaaaa"
             secureTextEntry={!passwordVisible}
-            key={passwordVisible ? 'hidden' : 'visible'}
+            key={passwordVisible ? "hidden" : "visible"}
             style={styles.input}
           />
           <TouchableOpacity
             onPress={togglePasswordVisibility}
-            style={styles.eyeIcon}>
+            style={styles.eyeIcon}
+          >
             <Animated.View style={animatedStyle}>
               {passwordVisible ? <OpenEyeIcon /> : <ClosedEyeIcon />}
             </Animated.View>
@@ -256,7 +256,7 @@ const Signup = ({navigation}: {navigation: any}) => {
       </View>
       <View style={styles.LoginContainer}>
         <Text style={styles.LoginText}>Already Have an Account?</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+        <TouchableOpacity onPress={() => navigation.navigate("Login")}>
           <Text style={styles.LoginLink}>Login</Text>
         </TouchableOpacity>
       </View>

@@ -71,13 +71,13 @@ const Profile = ({navigation}: {navigation: any}) => {
 
           <TouchableOpacity
             style={styles.navItem}
-            onPress={() => navigation.navigate('Workout')}>
+            onPress={() => navigation.navigate('Workouts')}>
             <WorkoutIcon />
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.navItem}
-            onPress={() => navigation.navigate('Meal')}>
+            onPress={() => navigation.navigate('Meals')}>
             <MealIcon />
           </TouchableOpacity>
 

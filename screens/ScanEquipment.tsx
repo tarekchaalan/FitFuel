@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from "react";
 import {
   StyleSheet,
   View,
@@ -8,14 +8,14 @@ import {
   StatusBar,
   Modal,
   TouchableWithoutFeedback,
-} from 'react-native';
-import {Svg, Path} from 'react-native-svg';
+} from "react-native";
+import { Svg, Path } from "react-native-svg";
 import {
   launchCamera,
   CameraOptions,
   launchImageLibrary,
   ImageLibraryOptions,
-} from 'react-native-image-picker';
+} from "react-native-image-picker";
 
 const BackIcon = () => (
   <Svg height="28" width="28" viewBox="0 0 456 600">
@@ -35,22 +35,22 @@ const ResultsIcon = () => (
   </Svg>
 );
 
-const ScanEquipment = ({navigation}: {navigation: any}) => {
+const ScanEquipment = ({ navigation }: { navigation: any }) => {
   const [modalVisible, setModalVisible] = useState(false);
 
   const handleCameraLaunch = () => {
     const options: CameraOptions = {
-      mediaType: 'photo',
+      mediaType: "photo",
       includeBase64: false,
       maxHeight: 2000,
       maxWidth: 2000,
     };
 
-    launchCamera(options, response => {
+    launchCamera(options, (response) => {
       if (response.didCancel) {
-        console.log('User cancelled camera');
+        console.log("User cancelled camera");
       } else if (response.errorMessage) {
-        console.log('Camera Error: ', response.errorMessage);
+        console.log("Camera Error: ", response.errorMessage);
       } else {
         const imageUri = response.assets?.[0]?.uri ?? null;
         // Here, you should handle how you want to store/use the imageUri
@@ -62,15 +62,15 @@ const ScanEquipment = ({navigation}: {navigation: any}) => {
 
   const pickImage = () => {
     const options: ImageLibraryOptions = {
-      mediaType: 'photo',
+      mediaType: "photo",
       includeBase64: false,
     };
 
-    launchImageLibrary(options, response => {
+    launchImageLibrary(options, (response) => {
       if (response.didCancel) {
-        console.log('User cancelled image picker');
+        console.log("User cancelled image picker");
       } else if (response.errorMessage) {
-        console.log('Image picker error: ', response.errorMessage);
+        console.log("Image picker error: ", response.errorMessage);
       } else {
         const imageUri = response.assets?.[0]?.uri ?? null;
         // Similarly, handle the imageUri for your use case
@@ -87,12 +87,14 @@ const ScanEquipment = ({navigation}: {navigation: any}) => {
         <View style={styles.IconsContainer}>
           <TouchableOpacity
             style={styles.BackIcon}
-            onPress={() => navigation.navigate('Workout')}>
+            onPress={() => navigation.navigate("Workouts")}
+          >
             <BackIcon />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.ResultsIcon}
-            onPress={() => navigation.navigate('EquipmentResult')}>
+            onPress={() => navigation.navigate("EquipmentResult")}
+          >
             <ResultsIcon />
           </TouchableOpacity>
         </View>
@@ -101,10 +103,10 @@ const ScanEquipment = ({navigation}: {navigation: any}) => {
         </View>
         <View style={styles.scanButton}>
           <TouchableOpacity style={styles.button} onPress={handleCameraLaunch}>
-            <Text style={styles.textStyle}>Use Camera</Text>
+            <Text style={styles.textStyle}>Camera</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.button} onPress={pickImage}>
-            <Text style={styles.textStyle}>Open Photos</Text>
+            <Text style={styles.textStyle}>Photos</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -138,17 +140,16 @@ const styles = StyleSheet.create({
   },
   scanButton: {
     padding: 10,
-    backgroundColor: "#333",
+    backgroundColor: "#000",
     borderRadius: 20,
-    top: "2%",
-    height: "95%",
+    height: "80%",
     width: "100%",
     justifyContent: "center",
     alignItems: "center",
   },
   button: {
     borderRadius: 20,
-    width: "80%",
+    width: "40%",
     padding: 10,
     elevation: 2,
     backgroundColor: "#fff",

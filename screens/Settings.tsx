@@ -14,17 +14,16 @@ import { auth } from "../firebase";
 import { signOut } from "firebase/auth";
 import Svg, { Path } from "react-native-svg";
 
-const Settings = ({navigation}: {navigation: any}) => {
-  // Move the handleSignOut function inside the component
+const Settings = ({ navigation }: { navigation: any }) => {
   const handleSignOut = () => {
     signOut(auth) // Pass the auth instance to the signOut method
       .then(() => {
         // Sign-out successful.
-        navigation.navigate('Login'); // Navigate to the login/signup screen
+        navigation.navigate("Login");
       })
-      .catch(error => {
+      .catch((error) => {
         // An error happened.
-        console.error('Sign out error:', error);
+        console.error("Sign out error:", error);
       });
   };
   return (
@@ -34,14 +33,16 @@ const Settings = ({navigation}: {navigation: any}) => {
         <View style={styles.BackContainer}>
           <TouchableOpacity
             style={styles.BackIcon}
-            onPress={() => navigation.navigate('Profile')}>
+            onPress={() => navigation.navigate("Profile")}
+          >
             <BackIcon />
           </TouchableOpacity>
         </View>
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           <TouchableOpacity
             style={styles.signOutButton}
-            onPress={handleSignOut}>
+            onPress={handleSignOut}
+          >
             <Text style={styles.signOutButtonText}>Sign Out</Text>
           </TouchableOpacity>
         </ScrollView>
@@ -68,8 +69,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "space-between", // This will align the content to the top and the nav to the bottom
   },
-  scrollContainer: {
-  },
+  scrollContainer: {},
   BackIcon: {},
   BackContainer: {
     alignItems: "flex-start",

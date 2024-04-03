@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   StyleSheet,
   Text,
@@ -10,13 +10,13 @@ import {
   SafeAreaView,
   StatusBar,
   ImageSourcePropType,
-} from 'react-native';
-import Svg, {Path} from 'react-native-svg';
-import {StackNavigationProp} from '@react-navigation/stack';
+} from "react-native";
+import Svg, { Path } from "react-native-svg";
+import { StackNavigationProp } from "@react-navigation/stack";
 
 type RootStackParamList = {
   Dashboard: undefined;
-  Meal: undefined;
+  Meals: undefined;
   Profile: undefined;
   ScanEquipment: undefined;
   WorkoutSchedule: undefined;
@@ -36,10 +36,10 @@ interface ClickableItemProps {
   routeName: keyof RootStackParamList;
 }
 
-const gymimage = require('../assets/images/workout1.jpg');
-const scheduleimage = require('../assets/images/calendar.jpg');
+const gymimage = require("../assets/images/workout1.jpg");
+const scheduleimage = require("../assets/images/calendar.jpg");
 
-const Workouts = ({navigation}: WorkoutsProps) => {
+const Workouts = ({ navigation }: WorkoutsProps) => {
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
@@ -73,7 +73,8 @@ const Workouts = ({navigation}: WorkoutsProps) => {
         <View style={styles.navigation}>
           <TouchableOpacity
             style={styles.navItem}
-            onPress={() => navigation.navigate('Dashboard')}>
+            onPress={() => navigation.navigate("Dashboard")}
+          >
             <HomeIcon />
           </TouchableOpacity>
 
@@ -83,13 +84,15 @@ const Workouts = ({navigation}: WorkoutsProps) => {
 
           <TouchableOpacity
             style={styles.navItem}
-            onPress={() => navigation.navigate('Meal')}>
+            onPress={() => navigation.navigate("Meals")}
+          >
             <MealIcon />
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.navItem}
-            onPress={() => navigation.navigate('Profile')}>
+            onPress={() => navigation.navigate("Profile")}
+          >
             <ProfileIcon />
           </TouchableOpacity>
         </View>
@@ -108,7 +111,8 @@ const ClickableItem = ({
   return (
     <TouchableOpacity
       style={styles.ClickableItem}
-      onPress={() => navigation.navigate(routeName)}>
+      onPress={() => navigation.navigate(routeName)}
+    >
       <Image style={styles.ItemImage} source={imageSource} />
       <View style={styles.overlay}>
         <Text style={styles.ItemTitle}>{title}</Text>
@@ -229,9 +233,10 @@ const styles = StyleSheet.create({
   ItemDescription: {
     color: "#fff",
     fontSize: 13,
+    alignSelf: "flex-start",
+    marginLeft: "1%",
     fontFamily: "SFProText-Light",
     marginTop: "1.5%",
-    marginRight: "5%",
   },
   navigation: {
     flexDirection: "row",

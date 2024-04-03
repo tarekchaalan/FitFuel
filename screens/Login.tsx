@@ -57,12 +57,14 @@ const Login: React.FC<LoginProps> = ({ navigation }) => {
     try {
       let userCredential;
       if (isEmail(identifier)) {
+        // Direct email login
         userCredential = await signInWithEmailAndPassword(
           auth,
           identifier,
           password
         );
       } else {
+        // Username login, requiring email lookup
         const email = await getEmailByUsername(identifier);
         if (email) {
           userCredential = await signInWithEmailAndPassword(
@@ -75,12 +77,17 @@ const Login: React.FC<LoginProps> = ({ navigation }) => {
           return;
         }
       }
-      console.log("Logged in with identifier:", identifier);
-      navigation.navigate("Dashboard");
-    } catch (error) {
-      if (error instanceof Error) {
-        Alert.alert("Error", error.message);
+
+      if (userCredential.user) {
+        console.log("Logged in with identifier:", identifier);
+        navigation.navigate("Dashboard");
       }
+    } catch (error) {
+      console.error(error);
+      Alert.alert(
+        "Login Failed",
+        "Please check your credentials and try again."
+      );
     }
   };
 
