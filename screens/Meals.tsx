@@ -9,27 +9,88 @@ import {
   Dimensions,
   SafeAreaView,
   StatusBar,
+  ImageSourcePropType,
 } from "react-native";
 import Svg, { Path } from "react-native-svg";
+import { StackNavigationProp } from "@react-navigation/stack";
 
-const Meals = ({navigation}: {navigation: any}) => {
+type RootStackParamList = {
+  Dashboard: undefined;
+  Workouts: undefined;
+  Profile: undefined;
+  ScanIngredients: undefined;
+  MealPlan: undefined;
+  MacroChecker: undefined;
+};
+
+type MealScreenNavigationProp = StackNavigationProp<RootStackParamList>;
+
+interface MealProps {
+  navigation: MealScreenNavigationProp;
+}
+
+interface ClickableItemProps {
+  title: string;
+  description: string;
+  imageSource: ImageSourcePropType;
+  navigation: MealScreenNavigationProp;
+  routeName: keyof RootStackParamList;
+}
+
+const mealimage = require("../assets/images/mealimage.png");
+const scanfood = require("../assets/images/scanfood.png");
+const scheduleimage = require("../assets/images/calendar.jpg");
+
+const Meals = ({ navigation }: MealProps) => {
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <StatusBar barStyle="light-content" />
 
-        <ScrollView style={styles.scrollContainer}></ScrollView>
+        <ScrollView style={styles.scrollContainer}>
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.pageTitle}>Meals</Text>
+            <Text style={styles.subTitle}>
+              Time to <Text style={styles.boldText}>COOK!!</Text>
+            </Text>
+          </View>
+          <View style={styles.ItemContainer}>
+            <ClickableItem
+              title="Scan Ingredients"
+              description="Let us create your customized meal plan"
+              imageSource={mealimage}
+              navigation={navigation}
+              routeName="ScanIngredients"
+            />
+            <ClickableItem
+              title="Macro Checker"
+              description="Snap a picture of your food/barcodes to view its macros"
+              imageSource={scanfood}
+              navigation={navigation}
+              routeName="MacroChecker"
+            />
+            <ClickableItem
+              title="This Weeks Plan"
+              description="View your Meal Plan and recipes! "
+              imageSource={scheduleimage}
+              navigation={navigation}
+              routeName="MealPlan"
+            />
+          </View>
+        </ScrollView>
 
         <View style={styles.navigation}>
           <TouchableOpacity
             style={styles.navItem}
-            onPress={() => navigation.navigate('Dashboard')}>
+            onPress={() => navigation.navigate("Dashboard")}
+          >
             <HomeIcon />
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.navItem}
-            onPress={() => navigation.navigate('Workout')}>
+            onPress={() => navigation.navigate("Workouts")}
+          >
             <WorkoutIcon />
           </TouchableOpacity>
 
@@ -39,14 +100,34 @@ const Meals = ({navigation}: {navigation: any}) => {
 
           <TouchableOpacity
             style={styles.navItem}
-            onPress={() => navigation.navigate('Profile')}>
+            onPress={() => navigation.navigate("Profile")}
+          >
             <ProfileIcon />
           </TouchableOpacity>
         </View>
-
-        <StatusBar barStyle="light-content" />
       </SafeAreaView>
     </View>
+  );
+};
+
+const ClickableItem = ({
+  title,
+  description,
+  imageSource,
+  navigation,
+  routeName,
+}: ClickableItemProps) => {
+  return (
+    <TouchableOpacity
+      style={styles.ClickableItem}
+      onPress={() => navigation.navigate(routeName)}
+    >
+      <Image style={styles.ItemImage} source={imageSource} />
+      <View style={styles.overlay}>
+        <Text style={styles.ItemTitle}>{title}</Text>
+        <Text style={styles.ItemDescription}>{description}</Text>
+      </View>
+    </TouchableOpacity>
   );
 };
 
@@ -106,8 +187,65 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "space-between", // This will align the content to the top and the nav to the bottom
   },
-  scrollContainer: {
-    flex: 1,
+  scrollContainer: {},
+  headerTextContainer: {},
+  ItemContainer: {},
+  pageTitle: {
+    fontSize: 20,
+    marginTop: "6%",
+    alignSelf: "center",
+    fontFamily: "SFProRounded-Heavy",
+    color: "#fff",
+  },
+  subTitle: {
+    fontSize: 14,
+    marginTop: "2%",
+    alignSelf: "center",
+    fontFamily: "SFProText-Light",
+    color: "#fff",
+    marginBottom: "10%",
+  },
+  boldText: {
+    fontFamily: "SFProText-Heavy",
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(52, 52, 52, 1)",
+    padding: 10,
+    marginTop: 110,
+    borderRadius: 10,
+    justifyContent: "flex-end",
+    alignItems: "center",
+  },
+  ClickableItem: {
+    width: "88%",
+    height: 180,
+    backgroundColor: "#444",
+    borderRadius: 20,
+    marginLeft: "6%",
+    marginTop: 10,
+    marginBottom: 30,
+    overflow: "hidden",
+  },
+  ItemImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 10,
+  },
+  ItemTitle: {
+    color: "#fff",
+    fontSize: 17,
+    alignSelf: "flex-start",
+    fontFamily: "SFProRounded-Regular",
+    marginLeft: "1%",
+  },
+  ItemDescription: {
+    color: "#fff",
+    fontSize: 13,
+    alignSelf: "flex-start",
+    marginLeft: "1%",
+    fontFamily: "SFProText-Light",
+    marginTop: "1.5%",
   },
   navigation: {
     flexDirection: "row",
