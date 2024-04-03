@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
-import * as SplashScreen from "expo-splash-screen";
-import * as Font from "expo-font";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import "./firebase";
+import * as SplashScreen from "expo-splash-screen";
+import * as Font from "expo-font";
 import { auth } from "./firebase";
 import { UserProvider } from "./UserContext";
+
+// Import all screens
 import Login from "./screens/Login";
 import Signup from "./screens/Signup";
 import Forgot from "./screens/Forgot";
@@ -16,60 +16,20 @@ import ScanEquipment from "./screens/ScanEquipment";
 import EquipmentResult from "./screens/EquipmentResult";
 import WorkoutSchedule from "./screens/WorkoutSchedule";
 import Meals from "./screens/Meals";
+import MealPlan from "./screens/MealPlan";
 import ScanIngredients from "./screens/ScanIngredients";
 import MacroChecker from "./screens/MacroChecker";
+import MacroResult from "./screens/MacroResult";
 import Preferences from "./screens/Preferences";
 import Profile from "./screens/Profile";
 import Settings from "./screens/Settings";
 
-const AuthStack = createStackNavigator();
-const MainAppTabs = createBottomTabNavigator();
-const RootStack = createStackNavigator();
-
-SplashScreen.preventAutoHideAsync().catch(console.warn);
-
-function AuthStackNavigator() {
-  return (
-    <AuthStack.Navigator screenOptions={{ headerShown: false }}>
-      <AuthStack.Screen name="Login" component={Login} />
-      <AuthStack.Screen name="Signup" component={Signup} />
-      <AuthStack.Screen name="Forgot" component={Forgot} />
-    </AuthStack.Navigator>
-  );
-}
+const Stack = createStackNavigator();
 
 interface User {
   uid: string;
   email?: string | null;
   displayName?: string | null;
-}
-
-interface MainAppTabNavigatorProps {
-  initialRouteName: string;
-}
-
-function MainAppTabNavigator({ initialRouteName }: MainAppTabNavigatorProps) {
-  return (
-    <MainAppTabs.Navigator
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle: { display: "none" },
-      }}
-      initialRouteName={initialRouteName}
-    >
-      <MainAppTabs.Screen name="Preferences" component={Preferences} />
-      <MainAppTabs.Screen name="Dashboard" component={Dashboard} />
-      <MainAppTabs.Screen name="Workout" component={Workouts} />
-      <MainAppTabs.Screen name="ScanEquipment" component={ScanEquipment} />
-      <MainAppTabs.Screen name="EquipmentResult" component={EquipmentResult} />
-      <MainAppTabs.Screen name="WorkoutSchedule" component={WorkoutSchedule} />
-      <MainAppTabs.Screen name="Meal" component={Meals} />
-      <MainAppTabs.Screen name="ScanIngredients" component={ScanIngredients} />
-      <MainAppTabs.Screen name="MacroChecker" component={MacroChecker} />
-      <MainAppTabs.Screen name="Profile" component={Profile} />
-      <MainAppTabs.Screen name="Settings" component={Settings} />
-    </MainAppTabs.Navigator>
-  );
 }
 
 function App() {
@@ -81,6 +41,7 @@ function App() {
     async function prepare() {
       try {
         await Font.loadAsync({
+          // Assuming you have these fonts or replace with your own
           "SFProText-Heavy": require("./assets/fonts/SF Pro Text/SF-Pro-Text-Heavy.otf"),
           "SFProText-Regular": require("./assets/fonts/SF Pro Text/SF-Pro-Text-Regular.otf"),
           "SFProText-Light": require("./assets/fonts/SF Pro Text/SF-Pro-Text-Light.otf"),
@@ -97,40 +58,65 @@ function App() {
         SplashScreen.hideAsync();
       }
     }
-
     prepare();
   }, []);
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((currentUser: User | null) => {
+    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
       setUser(currentUser);
       if (currentUser) {
-        setInitialRoute("Dashboard"); // Or your logic to set the initial route
+        setInitialRoute("Dashboard"); // Adjust based on your app logic
+      } else {
+        setInitialRoute("Login"); // Adjust if necessary
       }
     });
 
-    return unsubscribe; // Cleanup subscription
+    return unsubscribe; // Cleanup on component unmount
   }, []);
 
   if (!fontsLoaded) {
-    return null; // Or a minimal loading screen if you prefer
+    return null; // Consider adding a loading screen here
   }
 
   return (
     <UserProvider>
       <NavigationContainer>
-        <RootStack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
           {user ? (
-            <RootStack.Screen
-              name="MainApp"
-              children={() => (
-                <MainAppTabNavigator initialRouteName={initialRoute} />
-              )}
-            />
+            // Main App Screens
+            <>
+              <Stack.Screen name="Dashboard" component={Dashboard} />
+              <Stack.Screen name="Workouts" component={Workouts} />
+              <Stack.Screen name="ScanEquipment" component={ScanEquipment} />
+              <Stack.Screen
+                name="EquipmentResult"
+                component={EquipmentResult}
+              />
+              <Stack.Screen
+                name="WorkoutSchedule"
+                component={WorkoutSchedule}
+              />
+              <Stack.Screen name="Meals" component={Meals} />
+              <Stack.Screen name="MealPlan" component={MealPlan} />
+              <Stack.Screen
+                name="ScanIngredients"
+                component={ScanIngredients}
+              />
+              <Stack.Screen name="MacroChecker" component={MacroChecker} />
+              <Stack.Screen name="MacroResult" component={MacroResult} />
+              <Stack.Screen name="Preferences" component={Preferences} />
+              <Stack.Screen name="Profile" component={Profile} />
+              <Stack.Screen name="Settings" component={Settings} />
+            </>
           ) : (
-            <RootStack.Screen name="Auth" component={AuthStackNavigator} />
+            // Auth Screens
+            <>
+              <Stack.Screen name="Login" component={Login} />
+              <Stack.Screen name="Signup" component={Signup} />
+              <Stack.Screen name="Forgot" component={Forgot} />
+            </>
           )}
-        </RootStack.Navigator>
+        </Stack.Navigator>
       </NavigationContainer>
     </UserProvider>
   );
