@@ -6,33 +6,30 @@ import {
   Image,
   TouchableOpacity,
   ScrollView,
-  Dimensions,
   SafeAreaView,
   StatusBar,
 } from "react-native";
-import { auth } from "../firebase";
 import Svg, { Path } from "react-native-svg";
-import { firestore } from "../firebase";
-import { doc, getDoc } from "firebase/firestore";
 import { useUser } from "../UserContext";
 
-const Profile = ({navigation}: {navigation: any}) => {
-  const {currentUser} = useUser();
-  const [fullName, setFullName] = useState('');
-  const [username, setUsername] = useState('');
-  const defaultProfilePic = require('../assets/images/profile-placeholder.jpg');
-  const [profilePicture, setProfilePicture] = useState(defaultProfilePic);
+const Profile = ({ navigation }: { navigation: any }) => {
+  const { currentUser } = useUser();
+  const [fullName, setFullName] = useState("");
+  const [username, setUsername] = useState("");
+  const [profilePicture, setProfilePicture] = useState(
+    require("../assets/images/profile-placeholder.jpg")
+  );
 
   useEffect(() => {
     if (currentUser) {
-      setFullName(currentUser.displayName || 'Name not found');
-      setUsername(currentUser.username || 'Username-not-found'); // Assuming `username` is part of your user object
+      setFullName(currentUser.displayName || "Name not found");
+      setUsername(currentUser.username || "Username-not-found");
       const pictureSource =
         currentUser.photoURL ||
-        require('../assets/images/profile-placeholder.jpg');
+        require("../assets/images/profile-placeholder.jpg");
       setProfilePicture(pictureSource);
     } else {
-      console.log('No user found');
+      console.log("No user found");
     }
   }, [currentUser]);
 
@@ -43,7 +40,8 @@ const Profile = ({navigation}: {navigation: any}) => {
         <View style={styles.GearContainer}>
           <TouchableOpacity
             style={styles.GearIcon}
-            onPress={() => navigation.navigate('Settings')}>
+            onPress={() => navigation.navigate("Settings")}
+          >
             <GearIcon />
           </TouchableOpacity>
         </View>
@@ -51,8 +49,8 @@ const Profile = ({navigation}: {navigation: any}) => {
           <View style={styles.header}>
             <Image
               source={
-                typeof profilePicture === 'string'
-                  ? {uri: profilePicture}
+                typeof profilePicture === "string"
+                  ? { uri: profilePicture }
                   : profilePicture
               }
               style={styles.profileImage}
@@ -65,19 +63,22 @@ const Profile = ({navigation}: {navigation: any}) => {
         <View style={styles.navigation}>
           <TouchableOpacity
             style={styles.navItem}
-            onPress={() => navigation.navigate('Dashboard')}>
+            onPress={() => navigation.navigate("Dashboard")}
+          >
             <HomeIcon />
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.navItem}
-            onPress={() => navigation.navigate('Workouts')}>
+            onPress={() => navigation.navigate("Workouts")}
+          >
             <WorkoutIcon />
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.navItem}
-            onPress={() => navigation.navigate('Meals')}>
+            onPress={() => navigation.navigate("Meals")}
+          >
             <MealIcon />
           </TouchableOpacity>
 
@@ -172,7 +173,7 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 25,
-    marginBottom: 20, // Add some space below the profile image
+    marginBottom: 15, // Add some space below the profile image
   },
   headerText: {
     fontSize: 20,
@@ -180,7 +181,7 @@ const styles = StyleSheet.create({
     color: "#fff",
   },
   nameText: {
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: "SFProRounded-Regular",
     color: "#fff",
   },
