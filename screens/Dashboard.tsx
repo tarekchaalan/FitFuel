@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   StyleSheet,
   Text,
@@ -13,6 +14,11 @@ import {
 } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { useUser } from "../UserContext";
+import { getAuth } from "firebase/auth";
+import { doc, updateDoc, getDoc, getFirestore } from "firebase/firestore";
+
+const db = getFirestore();
+const auth = getAuth();
 
 interface ProfilePictureState {
   uri: string;
@@ -25,27 +31,119 @@ interface WorkoutItemProps {
   navigation: any;
 }
 
-const workoutImage = require("../assets/images/workout.jpg");
-const breakfastImage = require("../assets/images/breakfast.jpg");
-const lunchImage = require("../assets/images/lunch.jpg");
-const dinnerImage = require("../assets/images/dinner.jpg");
 const placeholderImge = require("../assets/images/placeholder.png");
 
 const Dashboard = ({ navigation }: { navigation: any }) => {
   const { currentUser } = useUser();
   const [fullName, setFullName] = useState<string>("");
-  const defaultProfilePic = require("../assets/images/profile-placeholder.jpg");
-  const [profilePicture, setProfilePicture] = useState(defaultProfilePic);
+  const [profilePicture, setProfilePicture] = useState(
+    require("../assets/images/profile-placeholder.jpg")
+  );
+  const [monthlyChallengeHours, setMonthlyChallengeHours] = useState(0);
+  const [totalWorkoutHours, setTotalWorkoutHours] = useState(0);
+  const [progressPercentage, setProgressPercentage] = useState(0);
+
+  const fetchUserData = async () => {
+    const user = auth.currentUser;
+    if (user) {
+      const userRef = doc(db, "users", user.uid);
+      try {
+        const docSnap = await getDoc(userRef);
+        if (docSnap.exists()) {
+          const userData = docSnap.data();
+          // Assuming workoutDuration is in minutes, convert it to hours for the calculation
+          const workoutDurationInHours =
+            (userData.preferences?.workoutDuration || 0) / 60;
+          const workoutFrequencyPerWeek =
+            userData.preferences?.workoutFrequencyPerWeek || 0;
+          // totalWorkouts increments by 1 for each session, so multiply by workoutDurationInHours to get total hours
+          const totalWorkoutHours =
+            Math.round(
+              (userData.data?.totalWorkouts || 0) * workoutDurationInHours * 100
+            ) / 100;
+
+          // Calculate expected hours for the monthly challenge
+          const expectedHours =
+            Math.round(
+              workoutFrequencyPerWeek * workoutDurationInHours * 4 * 100
+            ) / 100;
+          // Calculate the progress percentage based on total hours worked out
+          const progress = (totalWorkoutHours / expectedHours) * 100;
+
+          setMonthlyChallengeHours(expectedHours);
+          setTotalWorkoutHours(totalWorkoutHours);
+          setProgressPercentage(progress);
+        } else {
+          console.log("No such document!");
+        }
+      } catch (error) {
+        console.error("Error fetching user data: ", error);
+      }
+    }
+  };
 
   useEffect(() => {
     if (currentUser) {
-      setFullName(currentUser.displayName || "");
+      setFullName(currentUser.displayName || "Name not found");
       const pictureSource =
         currentUser.photoURL ||
         require("../assets/images/profile-placeholder.jpg");
       setProfilePicture(pictureSource);
+      fetchUserData();
     }
-  }, [currentUser, navigation]);
+  }, [currentUser]);
+
+  // Focus effect for re-fetching data when navigating back to the Dashboard
+  useFocusEffect(
+    useCallback(() => {
+      // Ensure this function fetches and updates fullName and profilePicture as well
+      fetchUserData();
+    }, [setFullName, setProfilePicture]) // Add dependencies for update functions
+  );
+
+  const updateUserData = async () => {
+    const user = auth.currentUser;
+    if (user) {
+      const userDataRef = doc(db, "users", user.uid);
+      try {
+        const userDataSnap = await getDoc(userDataRef);
+        // Get existing data map, or initialize if not present
+        const dataMap =
+          userDataSnap.exists() && userDataSnap.data().data
+            ? userDataSnap.data().data
+            : {};
+        const totalWorkouts = dataMap.totalWorkouts || 0;
+
+        // Increment the total workouts count within the data map
+        await updateDoc(userDataRef, {
+          "data.totalWorkouts": totalWorkouts + 1,
+        });
+
+        fetchUserData();
+      } catch (error) {
+        console.error("Error updating total workouts: ", error);
+        alert("Failed to log workout. Please try again later.");
+      }
+    } else {
+      alert("Please log in to log your workout.");
+    }
+  };
+
+  const progressStatusText = () => {
+    if (progressPercentage < 100) {
+      return `You're ${progressPercentage.toFixed(
+        2
+      )}% closer to your monthly goal`;
+    } else if (progressPercentage === 100) {
+      return "You've hit your monthly goal! Congratulations!";
+    } else {
+      return `You're ${(progressPercentage - 100).toFixed(
+        2
+      )}% over your monthly goal! Keep it up!`;
+    }
+  };
+
+  const glowEffect = progressPercentage >= 100 ? styles.glow : null;
 
   return (
     <View style={styles.container}>
@@ -73,27 +171,50 @@ const Dashboard = ({ navigation }: { navigation: any }) => {
             </TouchableOpacity>
           </View>
           <View style={styles.goalContainer}>
-            <Text style={styles.goalText}>Weekly Goal</Text>
-            <Text style={styles.goalPercentage}>
-              You're 75% closer to your weekly goal
+            <Text style={styles.goalBold}>
+              Monthly Challenge:{"    "}
+              <Text style={styles.goalLight}>
+                Workout for {monthlyChallengeHours} hours
+              </Text>
             </Text>
+            <Text style={styles.goalPercentage}>{progressStatusText()}</Text>
             <View style={styles.progressBar}>
-              <View style={styles.progress} />
+              <View
+                style={[
+                  styles.progress,
+                  { width: `${progressPercentage}%` },
+                  glowEffect,
+                ]}
+              />
             </View>
+            <Text style={styles.progressText}>
+              {totalWorkoutHours} / {monthlyChallengeHours} Hours Completed
+            </Text>
           </View>
 
           <View style={styles.workoutContainer}>
-            <Text style={styles.workoutHeader}>Today's Workouts</Text>
+            <View style={styles.headerContainer}>
+              <Text style={styles.workoutHeader}>Today's Workout Plan</Text>
+              <TouchableOpacity
+                style={styles.logWorkoutButton}
+                onPress={updateUserData}
+              >
+                <Text style={styles.logWorkoutButtonText}>
+                  Log Daily Workout
+                </Text>
+              </TouchableOpacity>
+            </View>
+
             <WorkoutItem
-              title="Upper Body"
-              muscles="Biceps | Triceps | Back | Shoulders | Chest"
+              title="Workout Group"
+              muscles="Work | out | target | muscles"
               imageSource={placeholderImge}
               navigation={navigation}
             />
           </View>
 
           <View style={styles.mealContainer}>
-            <Text style={styles.mealHeader}>Today's Meals</Text>
+            <Text style={styles.mealHeader}>This Week's Meal Plan</Text>
             <ScrollView
               horizontal
               style={styles.mealItemsContainer}
@@ -101,17 +222,17 @@ const Dashboard = ({ navigation }: { navigation: any }) => {
             >
               <MealItem
                 title="Breakfast"
-                description="Eggs on Avocado Toast"
+                description="Breakfast Meal Name"
                 imageSource={placeholderImge}
               />
               <MealItem
                 title="Lunch"
-                description="Chicken Salad"
+                description="Lunch Meal Name"
                 imageSource={placeholderImge}
               />
               <MealItem
                 title="Dinner"
-                description="Chicken Quasadilla"
+                description="Dinner Meal Name"
                 imageSource={placeholderImge}
               />
             </ScrollView>
@@ -300,12 +421,20 @@ const styles = StyleSheet.create({
     marginLeft: "6%",
     marginBottom: "7%",
   },
-  goalText: {
+  goalBold: {
     marginTop: 15,
     color: "#fff",
     fontFamily: "SFProRounded-Heavy",
     fontSize: 18,
     marginBottom: 8,
+  },
+  goalLight: {
+    fontSize: 14,
+    marginTop: "2%",
+    alignSelf: "center",
+    fontFamily: "SFProText-Light",
+    color: "#fff",
+    marginBottom: "10%",
   },
   goalPercentage: {
     color: "#fff",
@@ -321,9 +450,27 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   progress: {
-    flex: 0.75,
+    height: "100%",
+    maxWidth: "100%",
     backgroundColor: "#9A2CE8",
     borderRadius: 10,
+  },
+  glow: {
+    shadowColor: "#9A2CE8",
+    shadowOffset: {
+      width: 0,
+      height: 0,
+    },
+    shadowOpacity: 1,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  progressText: {
+    fontSize: 10,
+    fontFamily: "SFProRounded-Light",
+    color: "#fff",
+    marginTop: 5,
+    alignSelf: "flex-end",
   },
   scrollContainer: {
     height: 200,
@@ -340,12 +487,28 @@ const styles = StyleSheet.create({
   workoutContainer: {
     marginTop: 1,
   },
+  headerContainer: {
+    flexDirection: "row", // Align children in a row
+    justifyContent: "space-between", // Justify content to space between
+    alignItems: "center", // Align items to center vertically
+    marginTop: 1,
+    paddingHorizontal: "7%",
+  },
   workoutHeader: {
     fontSize: 18,
     fontFamily: "SFProRounded-Heavy",
     color: "#fff",
-    marginLeft: "7%",
-    marginBottom: "4%",
+  },
+  logWorkoutButton: {
+    backgroundColor: "#9A2CE8",
+    borderRadius: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+  },
+  logWorkoutButtonText: {
+    fontFamily: "SFProRounded-Heavy",
+    color: "#FFFFFF",
+    fontSize: 11,
   },
   workoutItem: {
     width: "88%",
@@ -354,7 +517,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginLeft: "6%",
     marginTop: 10,
-    marginBottom: 30,
+    marginBottom: 20,
     overflow: "hidden",
   },
   workoutImage: {
@@ -375,8 +538,6 @@ const styles = StyleSheet.create({
   },
   mealContainer: {
     marginTop: 20,
-    marginLeft: 15,
-    marginRight: 15,
     marginBottom: 30,
   },
   mealItemsContainer: {
@@ -387,8 +548,8 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: "SFProRounded-Heavy",
     color: "#fff",
-    marginLeft: "7%",
     marginBottom: "4%",
+    marginLeft: "7%",
   },
   mealItem: {
     width: screenWidth / 2.2,
