@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState, useEffect } from "react";
 import {
   ScrollView,
   View,
@@ -10,12 +10,12 @@ import {
   Alert,
   TextInput,
   ViewStyle,
-} from 'react-native';
-import {auth, firestore} from '../firebase';
-import {doc, setDoc} from 'firebase/firestore';
-import Slider from '@react-native-community/slider';
-import Svg, {Path} from 'react-native-svg';
-import {StackNavigationProp} from '@react-navigation/stack';
+} from "react-native";
+import { auth, firestore } from "../firebase";
+import { doc, setDoc, getDoc } from "firebase/firestore";
+import Slider from "@react-native-community/slider";
+import Svg, { Path } from "react-native-svg";
+import { StackNavigationProp } from "@react-navigation/stack";
 
 interface PreferencesProps {
   navigation: StackNavigationProp<any, any>;
@@ -50,27 +50,75 @@ interface TagInputProps {
   field: keyof PreferencesState;
 }
 
-const Preferences = ({navigation}: {navigation: any}) => {
+const Preferences = ({ navigation }: { navigation: any }) => {
   const [preferences, setPreferences] = useState<PreferencesState>({
-    age: 20,
-    gender: '',
-    currentWeight: 150,
-    targetWeight: 140,
-    currentPhysique: '',
-    targetPhysique: '',
-    height: 65,
+    age: 10,
+    gender: "",
+    currentWeight: 50,
+    targetWeight: 50,
+    currentPhysique: "",
+    targetPhysique: "",
+    height: 53,
     dietaryRestrictions: [],
     foodAllergies: [],
     dislikedFoods: [],
-    workoutFrequencyPerWeek: 3,
+    workoutFrequencyPerWeek: 1,
     workoutDuration: 30,
-    fitnessLevel: '',
+    fitnessLevel: "",
     intolerances: [],
     typesOfWorkouts: [],
   });
 
+  // Fetch user preferences from Firestore
+  useEffect(() => {
+    const fetchPreferences = async () => {
+      const user = auth.currentUser;
+      if (user) {
+        const docRef = doc(firestore, "users", user.uid);
+        try {
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            const userData = docSnap.data();
+            const userPreferences = userData.preferences || {}; // Assuming the structure of your document
+            setPreferences((prevState) => ({
+              ...prevState,
+              ...userPreferences,
+              // Overwrite the specific fields only if they exist in the fetched preferences
+              dietaryRestrictions:
+                userPreferences.dietaryRestrictions ??
+                prevState.dietaryRestrictions,
+              foodAllergies:
+                userPreferences.foodAllergies ?? prevState.foodAllergies,
+              dislikedFoods:
+                userPreferences.dislikedFoods ?? prevState.dislikedFoods,
+              workoutFrequencyPerWeek:
+                userPreferences.workoutFrequencyPerWeek ??
+                prevState.workoutFrequencyPerWeek,
+              workoutDuration:
+                userPreferences.workoutDuration ?? prevState.workoutDuration,
+              fitnessLevel:
+                userPreferences.fitnessLevel ?? prevState.fitnessLevel,
+            }));
+            // Set the selected tags states
+            setSelectedIntolerances(userPreferences.intolerances || []);
+            setSelectedDietaryRestrictions(
+              userPreferences.dietaryRestrictions || []
+            );
+            setSelectedTypesofWorkouts(userPreferences.typesOfWorkouts || []);
+          } else {
+            console.log("No user preferences found.");
+          }
+        } catch (error) {
+          console.error("Error fetching user preferences: ", error);
+        }
+      }
+    };
+
+    fetchPreferences();
+  }, []);
+
   const [selectedIntolerances, setSelectedIntolerances] = useState<string[]>(
-    [],
+    []
   );
   const [selectedDietaryRestrictions, setSelectedDietaryRestrictions] =
     useState<string[]>([]);
@@ -79,27 +127,27 @@ const Preferences = ({navigation}: {navigation: any}) => {
   >([]);
 
   const handleSliderChange = (name: keyof PreferencesState, value: number) => {
-    setPreferences({...preferences, [name]: value});
+    setPreferences({ ...preferences, [name]: value });
   };
 
   const handleInputChange = (
     name: keyof PreferencesState,
-    value: string | number | string[],
+    value: string | number | string[]
   ) => {
-    setPreferences({...preferences, [name]: value});
+    setPreferences({ ...preferences, [name]: value });
   };
 
   const addTag = (field: keyof PreferencesState, tag: string) => {
     if (!tag.trim()) return;
     const newTags = [...(preferences[field] as string[]), tag];
-    setPreferences({...preferences, [field]: newTags});
+    setPreferences({ ...preferences, [field]: newTags });
   };
 
   const removeTag = (field: keyof PreferencesState, index: number) => {
     const newTags = (preferences[field] as string[]).filter(
-      (_, i) => i !== index,
+      (_, i) => i !== index
     );
-    setPreferences({...preferences, [field]: newTags});
+    setPreferences({ ...preferences, [field]: newTags });
   };
 
   const savePreferencesToFirestore = async () => {
@@ -114,15 +162,15 @@ const Preferences = ({navigation}: {navigation: any}) => {
       };
 
       await setDoc(
-        doc(firestore, 'users', user.uid),
-        {preferences: updatedPreferences},
-        {merge: true},
+        doc(firestore, "users", user.uid),
+        { preferences: updatedPreferences },
+        { merge: true }
       )
-        .then(() => Alert.alert('Success', 'Preferences saved successfully'))
-        .then(() => navigation.navigate('Dashboard'))
-        .catch(error => console.error('Error saving to Firestore:', error));
+        .then(() => Alert.alert("Success", "Preferences saved successfully"))
+        .then(() => navigation.navigate("Dashboard"))
+        .catch((error) => console.error("Error saving to Firestore:", error));
     } else {
-      Alert.alert('Error', 'No authenticated user found.');
+      Alert.alert("Error", "No authenticated user found.");
     }
   };
 
@@ -133,31 +181,32 @@ const Preferences = ({navigation}: {navigation: any}) => {
     onDeselect,
   }: SelectionTagsProps) => (
     <View style={styles.tagsInputContainer}>
-      {options.map(option => (
+      {options.map((option) => (
         <TouchableOpacity
           key={option}
           style={[
             styles.tag,
             selectedOptions.includes(option)
-              ? {backgroundColor: '#9A2CE8'}
-              : {backgroundColor: '#333'},
+              ? { backgroundColor: "#9A2CE8" }
+              : { backgroundColor: "#333" },
           ]}
           onPress={() =>
             selectedOptions.includes(option)
               ? onDeselect(option)
               : onSelect(option)
-          }>
+          }
+        >
           <Text style={styles.tagText}>{option}</Text>
         </TouchableOpacity>
       ))}
     </View>
   );
 
-  const TagInput = ({field}: TagInputProps) => (
+  const TagInput = ({ field }: TagInputProps) => (
     <View>
       <TextInput
         style={styles.tagInput}
-        onSubmitEditing={({nativeEvent: {text}}) => addTag(field, text)}
+        onSubmitEditing={({ nativeEvent: { text } }) => addTag(field, text)}
         placeholder="Type here..."
         placeholderTextColor="#777"
         returnKeyType="done"
@@ -165,10 +214,13 @@ const Preferences = ({navigation}: {navigation: any}) => {
       />
       <View style={styles.tagsContainer}>
         {(preferences[field] as string[]).map((item, index) => (
-          <View key={index} style={[styles.tag, {backgroundColor: '#9A2CE8'}]}>
-            <Text style={[styles.tagText, {color: '#FFF'}]}>{item}</Text>
+          <View
+            key={index}
+            style={[styles.tag, { backgroundColor: "#9A2CE8" }]}
+          >
+            <Text style={[styles.tagText, { color: "#FFF" }]}>{item}</Text>
             <TouchableOpacity onPress={() => removeTag(field, index)}>
-              <Text style={[styles.tagRemoveText, {color: '#FFF'}]}>x</Text>
+              <Text style={[styles.tagRemoveText, { color: "#FFF" }]}>x</Text>
             </TouchableOpacity>
           </View>
         ))}
@@ -188,106 +240,94 @@ const Preferences = ({navigation}: {navigation: any}) => {
     label,
     selected,
     onPress,
-    fontSize = 16, // Provide default value
-    width = '30%', // Provide default value
+    fontSize = 16,
+    width = "30%",
   }) => {
     const containerStyle: ViewStyle = {
       borderWidth: 2,
-      borderColor: '#9A2CE8',
+      borderColor: "#9A2CE8",
       borderRadius: 10,
       paddingVertical: 10,
       paddingHorizontal: 20,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: selected ? '#9A2CE8' : 'transparent',
-      width: '30%',
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: selected ? "#9A2CE8" : "transparent",
+      width: "30%",
     };
 
     return (
       <TouchableOpacity onPress={onPress} style={containerStyle}>
-        <Text style={[styles.optionText, {fontSize}]}>{label}</Text>
+        <Text style={[styles.optionText, { fontSize }]}>{label}</Text>
       </TouchableOpacity>
     );
   };
 
-  const onSliderChangeAge = (value: number) => handleInputChange('age', value);
-  const onSliderChangeHeight = (value: number) =>
-    handleInputChange('height', value);
-  const onSliderChangeCurrentWeight = (value: number) =>
-    handleInputChange('currentWeight', value);
-  const onSliderChangeTargetWeight = (value: number) =>
-    handleInputChange('targetWeight', value);
-  const onSliderChangeWorkoutFrequencyPerWeek = (value: number) =>
-    handleInputChange('workoutFrequencyPerWeek', value);
-  const onSliderChangeWorkoutDuration = (value: number) =>
-    handleInputChange('workoutDuration', value);
-
   const intolerancesOptions = [
-    'Dairy',
-    'Eggs',
-    'Gluten',
-    'Peanuts',
-    'Sesame',
-    'Seafood',
-    'Shellfish',
-    'Soy',
-    'Sulfites',
-    'Tree Nuts',
-    'Wheat',
-    'None',
+    "Dairy",
+    "Eggs",
+    "Gluten",
+    "Peanuts",
+    "Sesame",
+    "Seafood",
+    "Shellfish",
+    "Soy",
+    "Sulfites",
+    "Tree Nuts",
+    "Wheat",
+    "None",
   ];
   const dietaryRestrictionsOptions = [
-    'Pescatarian',
-    'Lacto Vegetarian',
-    'Ovo Vegetarian',
-    'Vegan',
-    'Paleo',
-    'Primal',
-    'Vegetarian',
-    'None',
+    "Pescatarian",
+    "Lacto Vegetarian",
+    "Ovo Vegetarian",
+    "Vegan",
+    "Paleo",
+    "Primal",
+    "Vegetarian",
+    "None",
   ];
   const typeOfWorkoutOptions = [
-    'Cardio',
-    'Weightlifting',
-    'Powerlifting',
-    'Strength',
-    'Stretching',
-    'Plyometrics',
-    'None',
+    "Cardio",
+    "Weightlifting",
+    "Powerlifting",
+    "Strength",
+    "Stretching",
+    "Plyometrics",
+    "None",
   ];
 
   const toggleIntolerance = (intolerance: string) => {
-    if (intolerance === 'None') {
-      setSelectedIntolerances(['None']);
+    if (intolerance === "None") {
+      setSelectedIntolerances(["None"]);
     } else {
-      setSelectedIntolerances(current =>
-        current.includes('None') || current.includes(intolerance)
-          ? current.filter(i => i !== 'None' && i !== intolerance)
-          : [...current, intolerance],
+      setSelectedIntolerances((current) =>
+        current.includes("None") || current.includes(intolerance)
+          ? current.filter((i) => i !== "None" && i !== intolerance)
+          : [...current, intolerance]
       );
     }
   };
 
   const toggleDietaryRestriction = (restriction: string) => {
-    if (restriction === 'None') {
-      setSelectedDietaryRestrictions(['None']);
+    if (restriction === "None") {
+      setSelectedDietaryRestrictions(["None"]);
     } else {
-      setSelectedDietaryRestrictions(current =>
-        current.includes('None') || current.includes(restriction)
-          ? current.filter(r => r !== 'None' && r !== restriction)
-          : [...current, restriction],
+      setSelectedDietaryRestrictions((current) =>
+        current.includes("None") || current.includes(restriction)
+          ? current.filter((r) => r !== "None" && r !== restriction)
+          : [...current, restriction]
       );
     }
   };
 
   const toggleTypeOfWorkout = (restriction: string) => {
-    if (restriction === 'None') {
-      setSelectedTypesofWorkouts(['None']);
+    if (restriction === "None") {
+      setSelectedTypesofWorkouts(["None"]);
     } else {
-      setSelectedTypesofWorkouts(current =>
-        current.includes('None') || current.includes(restriction)
-          ? current.filter(r => r !== 'None' && r !== restriction)
-          : [...current, restriction],
+      setSelectedTypesofWorkouts((current) =>
+        current.includes("None") || current.includes(restriction)
+          ? current.filter((r) => r !== "None" && r !== restriction)
+          : [...current, restriction]
       );
     }
   };
@@ -315,7 +355,8 @@ const Preferences = ({navigation}: {navigation: any}) => {
           <View style={styles.BackContainer}>
             <TouchableOpacity
               style={styles.BackIcon}
-              onPress={() => navigation.navigate('Dashboard')}>
+              onPress={() => navigation.navigate("Dashboard")}
+            >
               <BackIcon />
             </TouchableOpacity>
           </View>
@@ -329,7 +370,7 @@ const Preferences = ({navigation}: {navigation: any}) => {
             <Text style={styles.label}>Age: {preferences.age}</Text>
             <Slider
               value={preferences.age}
-              onValueChange={value => handleSliderChange('age', value)}
+              onValueChange={(value) => handleSliderChange("age", value)}
               minimumValue={10}
               maximumValue={100}
               step={1}
@@ -346,7 +387,7 @@ const Preferences = ({navigation}: {navigation: any}) => {
             </Text>
             <Slider
               value={preferences.height}
-              onValueChange={value => handleSliderChange('height', value)}
+              onValueChange={(value) => handleSliderChange("height", value)}
               minimumValue={53}
               maximumValue={96}
               step={1}
@@ -360,12 +401,12 @@ const Preferences = ({navigation}: {navigation: any}) => {
           <View style={styles.section}>
             <Text style={styles.label}>Gender</Text>
             <View style={styles.multioptions}>
-              {['Male', 'Female', 'Other'].map(gender => (
+              {["Male", "Female", "Other"].map((gender) => (
                 <OptionBox
                   key={gender}
                   label={gender}
                   selected={preferences.gender === gender}
-                  onPress={() => handleInputChange('gender', gender)}
+                  onPress={() => handleInputChange("gender", gender)}
                   fontSize={13}
                 />
               ))}
@@ -379,13 +420,13 @@ const Preferences = ({navigation}: {navigation: any}) => {
           <View style={styles.section}>
             <Text style={styles.label}>Current Physique</Text>
             <View style={styles.multioptions}>
-              {['Lean', 'Balanced', 'Fuller'].map(currentPhysique => (
+              {["Lean", "Balanced", "Fuller"].map((currentPhysique) => (
                 <OptionBox
                   key={currentPhysique}
                   label={currentPhysique}
                   selected={preferences.currentPhysique === currentPhysique}
                   onPress={() =>
-                    handleInputChange('currentPhysique', currentPhysique)
+                    handleInputChange("currentPhysique", currentPhysique)
                   }
                   fontSize={14}
                 />
@@ -396,13 +437,13 @@ const Preferences = ({navigation}: {navigation: any}) => {
           <View style={styles.section}>
             <Text style={styles.label}>Target Physique</Text>
             <View style={styles.multioptions}>
-              {['Lean', 'Balanced', 'Muscular'].map(targetPhysique => (
+              {["Lean", "Balanced", "Muscular"].map((targetPhysique) => (
                 <OptionBox
                   key={targetPhysique}
                   label={targetPhysique}
                   selected={preferences.targetPhysique === targetPhysique}
                   onPress={() =>
-                    handleInputChange('targetPhysique', targetPhysique)
+                    handleInputChange("targetPhysique", targetPhysique)
                   }
                   fontSize={13}
                 />
@@ -416,8 +457,8 @@ const Preferences = ({navigation}: {navigation: any}) => {
             </Text>
             <Slider
               value={preferences.currentWeight}
-              onValueChange={value =>
-                handleSliderChange('currentWeight', value)
+              onValueChange={(value) =>
+                handleSliderChange("currentWeight", value)
               }
               minimumValue={50}
               maximumValue={400}
@@ -435,7 +476,9 @@ const Preferences = ({navigation}: {navigation: any}) => {
             </Text>
             <Slider
               value={preferences.targetWeight}
-              onValueChange={value => handleSliderChange('targetWeight', value)}
+              onValueChange={(value) =>
+                handleSliderChange("targetWeight", value)
+              }
               minimumValue={50}
               maximumValue={400}
               step={1}
@@ -490,8 +533,8 @@ const Preferences = ({navigation}: {navigation: any}) => {
             </Text>
             <Slider
               value={preferences.workoutFrequencyPerWeek}
-              onValueChange={value =>
-                handleSliderChange('workoutFrequencyPerWeek', value)
+              onValueChange={(value) =>
+                handleSliderChange("workoutFrequencyPerWeek", value)
               }
               minimumValue={1}
               maximumValue={14}
@@ -509,8 +552,8 @@ const Preferences = ({navigation}: {navigation: any}) => {
             </Text>
             <Slider
               value={preferences.workoutDuration}
-              onValueChange={value =>
-                handleSliderChange('workoutDuration', value)
+              onValueChange={(value) =>
+                handleSliderChange("workoutDuration", value)
               }
               minimumValue={30}
               maximumValue={120}
@@ -535,12 +578,12 @@ const Preferences = ({navigation}: {navigation: any}) => {
           <View style={styles.section}>
             <Text style={styles.label}>Fitness Level</Text>
             <View style={styles.multioptions}>
-              {['Beginner', 'Intermediate', 'Expert'].map(level => (
+              {["Beginner", "Intermediate", "Expert"].map((level) => (
                 <OptionBox
                   key={level}
                   label={level}
                   selected={preferences.fitnessLevel === level}
-                  onPress={() => handleInputChange('fitnessLevel', level)}
+                  onPress={() => handleInputChange("fitnessLevel", level)}
                   fontSize={11}
                 />
               ))}
@@ -549,7 +592,8 @@ const Preferences = ({navigation}: {navigation: any}) => {
 
           <TouchableOpacity
             style={styles.button}
-            onPress={savePreferencesToFirestore}>
+            onPress={savePreferencesToFirestore}
+          >
             <Text style={styles.buttonText}>Save Preferences</Text>
           </TouchableOpacity>
         </ScrollView>
