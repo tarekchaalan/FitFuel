@@ -36,7 +36,7 @@ interface ClickableItemProps {
   routeName: keyof RootStackParamList;
 }
 
-const gymimage = require("../assets/images/workout1.jpg");
+const gymimage = require("../assets/images/workout.jpg");
 const scheduleimage = require("../assets/images/calendar.jpg");
 
 const Workouts = ({ navigation }: WorkoutsProps) => {
