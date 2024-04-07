@@ -22,10 +22,7 @@ import CountryPicker from "react-native-country-picker-modal";
 import { CountryCode, Country } from "../assets/types";
 import { AsYouType } from "libphonenumber-js";
 import Svg, { Path, Circle } from "react-native-svg";
-import {
-  launchImageLibrary,
-  ImageLibraryOptions,
-} from "react-native-image-picker";
+import * as ImagePicker from "expo-image-picker";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../firebase";
 
@@ -61,24 +58,16 @@ const Signup = ({ navigation }: { navigation: any }) => {
     setFormattedPhoneNumber(formatted);
   };
 
-  const pickImage = () => {
-    // Use ImageLibraryOptions for the options type
-    const options: ImageLibraryOptions = {
-      mediaType: "photo", // Ensure this is a valid value from the 'MediaType' type
-      includeBase64: false,
-    };
-
-    launchImageLibrary(options, (response) => {
-      if (response.didCancel) {
-        console.log("User cancelled image picker");
-      } else if (response.errorMessage) {
-        console.log("Image picker error: ", response.errorMessage);
-      } else {
-        // Fallback to null if the uri is undefined
-        const imageUri = response.assets?.[0]?.uri ?? null;
-        setProfileImage(imageUri); // This ensures you're not passing undefined
-      }
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
     });
+
+    if (!result.canceled) {
+      setProfileImage(result.assets[0].uri);
+    }
   };
 
   const uploadImage = async (uri: string, userId: string) => {
@@ -123,7 +112,7 @@ const Signup = ({ navigation }: { navigation: any }) => {
         profilePicture: profilePictureUrl,
       });
       Alert.alert("Verification email sent. Please check your email.");
-      navigation.navigate("Preferences"); // Navigate to Preferences after successful signup
+      // temporary fix to show user data when navigated to app
     } catch (error) {
       const message = (error as Error).message;
       Alert.alert(message);
@@ -174,6 +163,7 @@ const Signup = ({ navigation }: { navigation: any }) => {
             <Image
               source={{ uri: profileImage }} // Use uri instead of assets
               style={styles.profileImage}
+              resizeMode="cover"
             />
           ) : (
             <UploadPFPIcon />
@@ -387,7 +377,7 @@ const styles = StyleSheet.create({
   profileImage: {
     width: "100%",
     height: "100%",
-    borderRadius: 25,
+    borderRadius: 23,
   },
   title: {
     fontSize: 26,
