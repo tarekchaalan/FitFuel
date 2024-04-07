@@ -4,7 +4,7 @@ Migrated codebase from https://github.com/tarekchaalan/Nourishfit-Planner
 
 ## Overview
 
-FitFuel is an innovative app that marries meal planning and fitness management on a singular platform. Utilizing cutting-edge image recognition technology, it crafts personalized meal and workout plans that align with users' dietary preferences, fitness objectives, and available equipment. Targeted towards health-conscious folks, fitness buffs, and the ever-busy professional, it streamlines the integration of nutrition and physical activity into a bustling lifestyle.
+FitFuel is an innovative app that merges meal planning and fitness management on a singular platform. Utilizing cutting-edge image recognition technology, it crafts personalized meal and workout plans that align with users' dietary preferences, fitness objectives, and available equipment. Targeted towards health-conscious folks, fitness buffs, and the ever-busy professional, it streamlines the integration of nutrition and physical activity into a bustling lifestyle.
 
 ## Features
 
