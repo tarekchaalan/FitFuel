@@ -6,16 +6,11 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
-  Modal,
-  TouchableWithoutFeedback,
+  Alert,
 } from "react-native";
 import { Svg, Path } from "react-native-svg";
-import {
-  launchCamera,
-  CameraOptions,
-  launchImageLibrary,
-  ImageLibraryOptions,
-} from "react-native-image-picker";
+import * as ImagePicker from "expo-image-picker";
+import { Camera, requestCameraPermissionsAsync, CameraType } from "expo-camera";
 
 const BackIcon = () => (
   <Svg height="28" width="28" viewBox="0 0 456 600">
@@ -36,49 +31,76 @@ const ResultsIcon = () => (
 );
 
 const ScanIngredients = ({ navigation }: { navigation: any }) => {
-  const [modalVisible, setModalVisible] = useState(false);
+  const [hasCameraPermission, setHasCameraPermission] = useState<
+    boolean | null
+  >(null);
 
-  const handleCameraLaunch = () => {
-    const options: CameraOptions = {
-      mediaType: "photo",
-      includeBase64: false,
-      maxHeight: 2000,
-      maxWidth: 2000,
-    };
+  const handleCameraLaunch = async () => {
+    const { status } = await requestCameraPermissionsAsync();
+    setHasCameraPermission(status === "granted");
 
-    launchCamera(options, (response) => {
-      if (response.didCancel) {
-        console.log("User cancelled camera");
-      } else if (response.errorMessage) {
-        console.log("Camera Error: ", response.errorMessage);
-      } else {
-        const imageUri = response.assets?.[0]?.uri ?? null;
-        // Here, you should handle how you want to store/use the imageUri
-        console.log(imageUri);
-        setModalVisible(false);
-      }
+    if (status !== "granted") {
+      Alert.alert(
+        "Permission Required",
+        "We need camera permissions to make this work!"
+      );
+    }
+  };
+
+  const pickImage = async () => {
+    await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 1,
+      allowsMultipleSelection: true,
     });
   };
 
-  const pickImage = () => {
-    const options: ImageLibraryOptions = {
-      mediaType: "photo",
-      includeBase64: false,
-    };
-
-    launchImageLibrary(options, (response) => {
-      if (response.didCancel) {
-        console.log("User cancelled image picker");
-      } else if (response.errorMessage) {
-        console.log("Image picker error: ", response.errorMessage);
-      } else {
-        const imageUri = response.assets?.[0]?.uri ?? null;
-        // Similarly, handle the imageUri for your use case
-        console.log(imageUri);
-        setModalVisible(false);
-      }
-    });
-  };
+  if (hasCameraPermission === null || hasCameraPermission === false) {
+    return (
+      <View style={styles.container}>
+        <SafeAreaView style={styles.safeArea}>
+          <StatusBar barStyle="light-content" />
+          <View style={styles.IconsContainer}>
+            <TouchableOpacity
+              style={styles.BackIcon}
+              onPress={() => navigation.navigate("Meals")}
+            >
+              <BackIcon />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.ResultsIcon}
+              onPress={() => navigation.navigate("IngredientsResult")}
+            >
+              <ResultsIcon />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.noteContainer}>
+            <Text style={styles.noteTitle}>Notes</Text>
+            <Text style={styles.noteText}>
+              Simply take or upload images of the ingredients in your Fridge/Cabinet/Drawers, this
+              will allow our system to cook up customized meal plans.
+              {"\n"}
+              {"\n"}
+              It's good to keep this updated for our system to know what kinds
+              of recipes to give you! {"\n"}
+              {"\n"}
+              If you recently got a couple new things from the supermarket, you
+              can either re-scan everything, or you can manually add
+              whatever you have.
+            </Text>
+          </View>
+          <View style={styles.grantContainer}>
+            <TouchableOpacity
+              style={styles.grantButton}
+              onPress={handleCameraLaunch}
+            >
+              <Text style={styles.grantText}>Continue</Text>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -91,16 +113,30 @@ const ScanIngredients = ({ navigation }: { navigation: any }) => {
           >
             <BackIcon />
           </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.ResultsIcon}
+            onPress={() => navigation.navigate("IngredientsResult")}
+          >
+            <ResultsIcon />
+          </TouchableOpacity>
         </View>
         <View>
           <Text style={styles.pageHeader}>Scan Ingredients</Text>
         </View>
         <View style={styles.scanButton}>
-          <TouchableOpacity style={styles.button} onPress={handleCameraLaunch}>
-            <Text style={styles.textStyle}>Camera</Text>
+          <Camera style={styles.camera} type={CameraType.back} />
+          {/* Add a 'Take Picture' button */}
+          <TouchableOpacity
+            style={styles.captureButton}
+            onPress={() => {
+              /* Here you would handle the photo capture */
+            }}
+          >
+            <View style={styles.captureButtonInner} />
           </TouchableOpacity>
+          <Text style={styles.orText}>OR</Text>
           <TouchableOpacity style={styles.button} onPress={pickImage}>
-            <Text style={styles.textStyle}>Photos</Text>
+            <Text style={styles.textStyle}>Select Photos</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -115,7 +151,6 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    justifyContent: "flex-start",
   },
   IconsContainer: {
     flexDirection: "row",
@@ -130,7 +165,50 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: "SFProRounded-Heavy",
     color: "#fff",
-    alignSelf: "center",
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  noteContainer: {
+    marginLeft: "5%",
+    marginRight: "5%",
+    marginTop: "2%",
+  },
+  noteTitle: {
+    fontSize: 36,
+    fontFamily: "SFProRounded-Heavy",
+    color: "#fff",
+    marginBottom: 20,
+    marginTop: 10,
+  },
+  noteText: {
+    fontSize: 20,
+    fontFamily: "SFProText-Light",
+    color: "#fff",
+  },
+  grantContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%",
+  },
+  grantButton: {
+    borderRadius: 20,
+    width: "40%",
+    padding: 10,
+    elevation: 2,
+    backgroundColor: "#fff",
+  },
+  grantText: {
+    color: "#000",
+    fontSize: 24,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  textStyle: {
+    color: "black",
+    fontSize: 24,
+    fontWeight: "bold",
+    textAlign: "center",
   },
   scanButton: {
     padding: 10,
@@ -141,6 +219,29 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  camera: {
+    marginTop: "20%",
+    width: "100%",
+    height: "95%",
+    marginBottom: 30,
+  },
+  captureButton: {
+    position: "absolute",
+    bottom: 65,
+    alignSelf: "center",
+    width: 85,
+    height: 85,
+    borderRadius: 50,
+    backgroundColor: "#333",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  captureButtonInner: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#fff",
+  },
   button: {
     borderRadius: 20,
     width: "40%",
@@ -148,11 +249,12 @@ const styles = StyleSheet.create({
     elevation: 2,
     backgroundColor: "#fff",
     marginBottom: 10,
+    marginTop: 20,
   },
-  textStyle: {
-    color: "black",
-    fontSize: 24,
-    fontWeight: "bold",
+  orText: {
+    color: "#fff",
+    fontSize: 28,
+    fontFamily: "SFProRounded-Heavy",
     textAlign: "center",
   },
 });
