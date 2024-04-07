@@ -18,6 +18,7 @@ import WorkoutSchedule from "./screens/WorkoutSchedule";
 import Meals from "./screens/Meals";
 import MealPlan from "./screens/MealPlan";
 import ScanIngredients from "./screens/ScanIngredients";
+import IngredientsResult from "./screens/IngredientsResult";
 import MacroChecker from "./screens/MacroChecker";
 import MacroResult from "./screens/MacroResult";
 import Preferences from "./screens/Preferences";
@@ -65,9 +66,9 @@ function App() {
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
       setUser(currentUser);
       if (currentUser) {
-        setInitialRoute("Dashboard"); // Adjust based on your app logic
+        setInitialRoute("Dashboard");
       } else {
-        setInitialRoute("Login"); // Adjust if necessary
+        setInitialRoute("Login");
       }
     });
 
@@ -101,6 +102,10 @@ function App() {
               <Stack.Screen
                 name="ScanIngredients"
                 component={ScanIngredients}
+              />
+              <Stack.Screen
+                name="IngredientsResult"
+                component={IngredientsResult}
               />
               <Stack.Screen name="MacroChecker" component={MacroChecker} />
               <Stack.Screen name="MacroResult" component={MacroResult} />
