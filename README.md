@@ -1,6 +1,6 @@
 # 🏋🏽 FitFuel 🏋🏽
 
-Moved From https://github.com/tarekchaalan/Nourishfit-Planner
+Migrated codebase from https://github.com/tarekchaalan/Nourishfit-Planner
 
 ## Overview
 
