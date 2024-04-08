@@ -26,7 +26,7 @@ const IngredientsResult = ({ navigation }: { navigation: any }) => {
           </TouchableOpacity>
         </View>
         <View>
-          <Text style={styles.pageHeader}>Ingredients Scan History</Text>
+          <Text style={styles.pageHeader}>Inventory</Text>
         </View>
       </SafeAreaView>
     </View>
