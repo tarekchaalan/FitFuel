@@ -100,7 +100,7 @@ const ScanEquipment = ({ navigation }: { navigation: any }) => {
             </TouchableOpacity>
           </View>
           <View style={styles.noteContainer}>
-            <Text style={styles.noteTitle}>Notes</Text>
+            <Text style={styles.noteTitle}>Instructions</Text>
             <Text style={styles.noteText}>
               Simply take or upload images of the equipment in your gym, this
               will allow us to come up with customized workout plans.

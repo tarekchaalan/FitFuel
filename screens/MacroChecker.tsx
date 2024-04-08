@@ -75,7 +75,7 @@ const MacroChecker = ({ navigation }: { navigation: any }) => {
             </TouchableOpacity>
           </View>
           <View style={styles.noteContainer}>
-            <Text style={styles.noteTitle}>Notes</Text>
+            <Text style={styles.noteTitle}>Instructions</Text>
             <Text style={styles.noteText}>
               Simply take or upload images of food {"\n"}
               (making sure most of the ingredients within it are visible)

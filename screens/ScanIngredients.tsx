@@ -75,7 +75,7 @@ const ScanIngredients = ({ navigation }: { navigation: any }) => {
             </TouchableOpacity>
           </View>
           <View style={styles.noteContainer}>
-            <Text style={styles.noteTitle}>Notes</Text>
+            <Text style={styles.noteTitle}>Instructions</Text>
             <Text style={styles.noteText}>
               Simply take or upload images of the ingredients in your Fridge/Cabinet/Drawers, this
               will allow our system to cook up customized meal plans.
