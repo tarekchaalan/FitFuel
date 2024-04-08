@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -30,21 +30,41 @@ const ResultsIcon = () => (
   </Svg>
 );
 
+const SwitchIcon = () => (
+  <Svg height="35" width="35" viewBox="0 0 24 24">
+    <Path
+      d="M8.70711 4.70711C9.09763 4.31658 9.09763 3.68342 8.70711 3.29289C8.31658 2.90237 7.68342 2.90237 7.29289 3.29289L3.29289 7.29289C2.90237 7.68342 2.90237 8.31658 3.29289 8.70711L7.29289 12.7071C7.68342 13.0976 8.31658 13.0976 8.70711 12.7071C9.09763 12.3166 9.09763 11.6834 8.70711 11.2929L6.41421 9H16C16.5523 9 17 8.55228 17 8C17 7.44772 16.5523 7 16 7H6.41421L8.70711 4.70711ZM20.7071 15.2929L16.7071 11.2929C16.3166 10.9024 15.6834 10.9024 15.2929 11.2929C14.9024 11.6834 14.9024 12.3166 15.2929 12.7071L17.5858 15H8C7.44772 15 7 15.4477 7 16C7 16.5523 7.44772 17 8 17H17.5858L15.2929 19.2929C14.9024 19.6834 14.9024 20.3166 15.2929 20.7071C15.6834 21.0976 16.3166 21.0976 16.7071 20.7071L20.7071 16.7071C21.0976 16.3166 21.0976 15.6834 20.7071 15.2929Z"
+      fill="#fff"
+    />
+  </Svg>
+);
+
 const MacroChecker = ({ navigation }: { navigation: any }) => {
   const [hasCameraPermission, setHasCameraPermission] = useState<
     boolean | null
   >(null);
+  const [mode, setMode] = useState<"food" | "barcode" | null>(null);
 
-  const handleCameraLaunch = async () => {
-    const { status } = await requestCameraPermissionsAsync();
-    setHasCameraPermission(status === "granted");
+  useEffect(() => {
+    (async () => {
+      const { status } = await requestCameraPermissionsAsync();
+      setHasCameraPermission(status === "granted");
+    })();
+  }, []);
 
-    if (status !== "granted") {
+  const toggleMode = () => {
+    setMode((prevMode) => (prevMode === "food" ? "barcode" : "food"));
+  };
+
+  const handlePress = (selectedMode: any) => {
+    if (!hasCameraPermission) {
       Alert.alert(
         "Permission Required",
         "We need camera permissions to make this work!"
       );
+      return;
     }
+    setMode(selectedMode);
   };
 
   const pickImage = async () => {
@@ -55,9 +75,30 @@ const MacroChecker = ({ navigation }: { navigation: any }) => {
     });
   };
 
-  if (hasCameraPermission === null || hasCameraPermission === false) {
+  const renderCamera = () => {
+    if (mode === "food") {
+      return <Camera style={styles.camera} type={CameraType.back}></Camera>;
+    } else if (mode === "barcode") {
+      return (
+        <View style={styles.camera}>
+          <View style={styles.blurOverlay} />
+          <View style={styles.scannerWindow}>
+            <Camera style={styles.fullSize} type={CameraType.back} />
+            <View style={styles.scanLineContainer}>
+              <View style={styles.scanLine} />
+            </View>
+          </View>
+        </View>
+      );
+    }
+  };
+
+  const pageTitle = mode === "food" ? "Food Scanner" : "Barcode Scanner";
+
+  if (!mode) {
     return (
       <View style={styles.container}>
+        {/* UI for selecting the mode */}
         <SafeAreaView style={styles.safeArea}>
           <StatusBar barStyle="light-content" />
           <View style={styles.IconsContainer}>
@@ -91,9 +132,15 @@ const MacroChecker = ({ navigation }: { navigation: any }) => {
           <View style={styles.grantContainer}>
             <TouchableOpacity
               style={styles.grantButton}
-              onPress={handleCameraLaunch}
+              onPress={() => handlePress("food")}
             >
-              <Text style={styles.grantText}>Continue</Text>
+              <Text style={styles.grantText}>Scan Food</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.grantButton}
+              onPress={() => handlePress("barcode")}
+            >
+              <Text style={styles.grantText}>Scan Barcode</Text>
             </TouchableOpacity>
           </View>
         </SafeAreaView>
@@ -108,7 +155,7 @@ const MacroChecker = ({ navigation }: { navigation: any }) => {
         <View style={styles.IconsContainer}>
           <TouchableOpacity
             style={styles.BackIcon}
-            onPress={() => navigation.navigate("Meals")}
+            onPress={() => setMode(null)}
           >
             <BackIcon />
           </TouchableOpacity>
@@ -119,24 +166,38 @@ const MacroChecker = ({ navigation }: { navigation: any }) => {
             <ResultsIcon />
           </TouchableOpacity>
         </View>
-        <View>
-          <Text style={styles.pageHeader}>Macro Checker</Text>
-        </View>
+        <Text style={styles.pageHeader}>
+          {mode
+            ? mode === "food"
+              ? "Food Scanner"
+              : "Barcode Scanner"
+            : "Select Mode"}
+        </Text>
         <View style={styles.scanButton}>
-          <Camera style={styles.camera} type={CameraType.back} />
-          {/* Add a 'Take Picture' button */}
-          <TouchableOpacity
-            style={styles.captureButton}
-            onPress={() => {
-              /* Here you would handle the photo capture */
-            }}
-          >
-            <View style={styles.captureButtonInner} />
-          </TouchableOpacity>
-          <Text style={styles.orText}>OR</Text>
-          <TouchableOpacity style={styles.button} onPress={pickImage}>
-            <Text style={styles.textStyle}>Select Photos</Text>
-          </TouchableOpacity>
+          {renderCamera()}
+          <View style={styles.CameraButtons}>
+            {mode && (
+              <>
+                <TouchableOpacity
+                  style={styles.captureButton}
+                  onPress={() => {}}
+                >
+                  <View style={styles.captureButtonInner} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.SwitchButton}
+                  onPress={toggleMode}
+                >
+                  <SwitchIcon />
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+          {mode === "food" && (
+            <TouchableOpacity style={styles.button} onPress={pickImage}>
+              <Text style={styles.textStyle}>Select Photos</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </SafeAreaView>
     </View>
@@ -165,7 +226,6 @@ const styles = StyleSheet.create({
     fontFamily: "SFProRounded-Heavy",
     color: "#fff",
     textAlign: "center",
-    marginBottom: 20,
   },
   noteContainer: {
     marginLeft: "5%",
@@ -197,9 +257,10 @@ const styles = StyleSheet.create({
   },
   grantButton: {
     borderRadius: 20,
-    width: "40%",
+    width: "auto",
     padding: 10,
     elevation: 2,
+    marginTop: 10,
     backgroundColor: "#fff",
   },
   grantText: {
@@ -212,6 +273,7 @@ const styles = StyleSheet.create({
     color: "black",
     fontSize: 24,
     fontWeight: "bold",
+    justifyContent: "center",
     textAlign: "center",
   },
   scanButton: {
@@ -224,27 +286,41 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   camera: {
-    marginTop: "20%",
-    width: "100%", // Take up the full width of the screen
-    height: "95%",
-    marginBottom: 30,
+    width: "110%",
+    marginBottom: 10,
+    flex: 1,
+    justifyContent: "flex-end",
+    alignItems: "center",
+    position: "relative",
+  },
+  CameraButtons: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: "20%",
+    flexDirection: "row",
+    justifyContent: "center", // Center the capture button
+    alignItems: "center",
   },
   captureButton: {
-    position: "absolute",
-    bottom: 65,
-    alignSelf: "center",
-    width: 85,
-    height: 85,
-    borderRadius: 50,
-    backgroundColor: "#333",
     justifyContent: "center",
+    width: 60,
+    height: 60,
+    borderRadius: 35,
+    backgroundColor: "#fff",
     alignItems: "center",
   },
   captureButtonInner: {
-    width: 60,
-    height: 60,
+    width: 55,
+    height: 55,
     borderRadius: 30,
-    backgroundColor: "#fff",
+    backgroundColor: "#aaa",
+  },
+  SwitchButton: {
+    position: "absolute",
+    right: 25, // Adjust as needed for padding from the right edge
+    justifyContent: "center",
+    alignItems: "center",
   },
   button: {
     borderRadius: 20,
@@ -255,11 +331,35 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     marginTop: 20,
   },
-  orText: {
-    color: "#fff",
-    fontSize: 28,
-    fontFamily: "SFProRounded-Heavy",
-    textAlign: "center",
+  blurOverlay: {
+    position: "absolute",
+  },
+  scannerWindow: {
+    position: "absolute",
+    left: "10%",
+    right: "10%",
+    top: "10%",
+    bottom: "50%",
+    borderWidth: 2,
+    borderColor: "white",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  fullSize: {
+    width: "100%",
+    height: "100%",
+  },
+  scanLineContainer: {
+    position: "absolute",
+    height: "100%",
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  scanLine: {
+    height: 2,
+    width: "80%",
+    backgroundColor: "red",
   },
 });
 
