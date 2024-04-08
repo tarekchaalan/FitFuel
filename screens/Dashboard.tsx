@@ -15,7 +15,14 @@ import {
 import Svg, { Path } from "react-native-svg";
 import { useUser } from "../UserContext";
 import { getAuth } from "firebase/auth";
-import { doc, updateDoc, getDoc, getFirestore } from "firebase/firestore";
+import {
+  doc,
+  updateDoc,
+  setDoc,
+  getDoc,
+  getFirestore,
+  increment,
+} from "firebase/firestore";
 
 const db = getFirestore();
 const auth = getAuth();
@@ -46,35 +53,51 @@ const Dashboard = ({ navigation }: { navigation: any }) => {
   const fetchUserData = async () => {
     const user = auth.currentUser;
     if (user) {
-      const userRef = doc(db, "users", user.uid);
-      try {
-        const docSnap = await getDoc(userRef);
-        if (docSnap.exists()) {
-          const userData = docSnap.data();
-          // Assuming workoutDuration is in minutes, convert it to hours for the calculation
-          const workoutDurationInHours =
-            (userData.preferences?.workoutDuration || 0) / 60;
-          const workoutFrequencyPerWeek =
-            userData.preferences?.workoutFrequencyPerWeek || 0;
-          // totalWorkouts increments by 1 for each session, so multiply by workoutDurationInHours to get total hours
-          const totalWorkoutHours =
-            Math.round(
-              (userData.data?.totalWorkouts || 0) * workoutDurationInHours * 100
-            ) / 100;
+      // Initialize variables to hold data from Firestore
+      let workoutDurationInHours = 0;
+      let workoutFrequencyPerWeek = 0;
+      let totalWorkouts = 0;
 
-          // Calculate expected hours for the monthly challenge
+      // Fetch user preferences
+      const preferencesRef = doc(db, "preferences", user.uid);
+      try {
+        const preferencesSnap = await getDoc(preferencesRef);
+        if (preferencesSnap.exists()) {
+          const preferencesData = preferencesSnap.data();
+          // Assuming workoutDuration is in minutes, convert it to hours for the calculation
+          workoutDurationInHours = (preferencesData.workoutDuration || 0) / 60;
+          workoutFrequencyPerWeek =
+            preferencesData.workoutFrequencyPerWeek || 0;
+        } else {
+          console.log("No preferences found.");
+        }
+      } catch (error) {
+        console.error("Error fetching user preferences: ", error);
+      }
+
+      // Fetch user data
+      const dataRef = doc(db, "data", user.uid);
+      try {
+        const dataSnap = await getDoc(dataRef);
+        if (dataSnap.exists()) {
+          const userData = dataSnap.data();
+          totalWorkouts = userData.totalWorkouts || 0;
+
+          // Calculate total workout hours and other metrics based on fetched preferences and data
+          const totalWorkoutHours =
+            Math.round(totalWorkouts * workoutDurationInHours * 100) / 100;
           const expectedHours =
             Math.round(
               workoutFrequencyPerWeek * workoutDurationInHours * 4 * 100
             ) / 100;
-          // Calculate the progress percentage based on total hours worked out
           const progress = (totalWorkoutHours / expectedHours) * 100;
 
+          // Update state or handle the calculated data as needed
           setMonthlyChallengeHours(expectedHours);
           setTotalWorkoutHours(totalWorkoutHours);
           setProgressPercentage(progress);
         } else {
-          console.log("No such document!");
+          console.log("No user data found.");
         }
       } catch (error) {
         console.error("Error fetching user data: ", error);
@@ -101,33 +124,30 @@ const Dashboard = ({ navigation }: { navigation: any }) => {
     }, [setFullName, setProfilePicture]) // Add dependencies for update functions
   );
 
-  const updateUserData = async () => {
-    const user = auth.currentUser;
-    if (user) {
-      const userDataRef = doc(db, "users", user.uid);
-      try {
-        const userDataSnap = await getDoc(userDataRef);
-        // Get existing data map, or initialize if not present
-        const dataMap =
-          userDataSnap.exists() && userDataSnap.data().data
-            ? userDataSnap.data().data
-            : {};
-        const totalWorkouts = dataMap.totalWorkouts || 0;
+const updateUserData = async () => {
+  const user = auth.currentUser;
+  if (user) {
+    const userDataRef = doc(db, "data", user.uid);
+    try {
+      // No need to check if the document exists; setDoc with merge:true will create or update as needed
+      await setDoc(
+        userDataRef,
+        {
+          totalWorkouts: increment(1), // Use Firestore increment to ensure correct concurrent updates
+        },
+        { merge: true }
+      );
 
-        // Increment the total workouts count within the data map
-        await updateDoc(userDataRef, {
-          "data.totalWorkouts": totalWorkouts + 1,
-        });
-
-        fetchUserData();
-      } catch (error) {
-        console.error("Error updating total workouts: ", error);
-        alert("Failed to log workout. Please try again later.");
-      }
-    } else {
-      alert("Please log in to log your workout.");
+      // Optionally refetch user data if needed
+      fetchUserData();
+    } catch (error) {
+      console.error("Error updating total workouts: ", error);
+      alert("Failed to log workout. Please try again later.");
     }
-  };
+  } else {
+    alert("Please log in to log your workout.");
+  }
+};
 
   const progressStatusText = () => {
     if (progressPercentage < 100) {

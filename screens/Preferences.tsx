@@ -74,32 +74,22 @@ const Preferences = ({ navigation }: { navigation: any }) => {
     const fetchPreferences = async () => {
       const user = auth.currentUser;
       if (user) {
-        const docRef = doc(firestore, "users", user.uid);
+        const docRef = doc(firestore, "preferences", user.uid);
         try {
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
-            const userData = docSnap.data();
-            const userPreferences = userData.preferences || {}; // Assuming the structure of your document
+            const userPreferences = docSnap.data(); // Directly accessing the preferences data
             setPreferences((prevState) => ({
               ...prevState,
               ...userPreferences,
-              // Overwrite the specific fields only if they exist in the fetched preferences
-              dietaryRestrictions:
-                userPreferences.dietaryRestrictions ??
-                prevState.dietaryRestrictions,
-              foodAllergies:
-                userPreferences.foodAllergies ?? prevState.foodAllergies,
-              dislikedFoods:
-                userPreferences.dislikedFoods ?? prevState.dislikedFoods,
+              dietaryRestrictions: userPreferences.dietaryRestrictions ?? [],
+              foodAllergies: userPreferences.foodAllergies ?? [],
+              dislikedFoods: userPreferences.dislikedFoods ?? [],
               workoutFrequencyPerWeek:
-                userPreferences.workoutFrequencyPerWeek ??
-                prevState.workoutFrequencyPerWeek,
-              workoutDuration:
-                userPreferences.workoutDuration ?? prevState.workoutDuration,
-              fitnessLevel:
-                userPreferences.fitnessLevel ?? prevState.fitnessLevel,
+                userPreferences.workoutFrequencyPerWeek ?? 0,
+              workoutDuration: userPreferences.workoutDuration ?? 0,
+              fitnessLevel: userPreferences.fitnessLevel ?? "",
             }));
-            // Set the selected tags states
             setSelectedIntolerances(userPreferences.intolerances || []);
             setSelectedDietaryRestrictions(
               userPreferences.dietaryRestrictions || []
@@ -139,15 +129,23 @@ const Preferences = ({ navigation }: { navigation: any }) => {
 
   const addTag = (field: keyof PreferencesState, tag: string) => {
     if (!tag.trim()) return;
-    const newTags = [...(preferences[field] as string[]), tag];
-    setPreferences({ ...preferences, [field]: newTags });
+    setPreferences((prevState) => {
+      const currentField = prevState[field];
+      const newTags = Array.isArray(currentField)
+        ? [...currentField, tag]
+        : [tag];
+      return { ...prevState, [field]: newTags };
+    });
   };
 
   const removeTag = (field: keyof PreferencesState, index: number) => {
-    const newTags = (preferences[field] as string[]).filter(
-      (_, i) => i !== index
-    );
-    setPreferences({ ...preferences, [field]: newTags });
+    setPreferences((prevState) => {
+      const currentField = prevState[field];
+      const newTags = Array.isArray(currentField)
+        ? currentField.filter((_, i) => i !== index)
+        : [];
+      return { ...prevState, [field]: newTags };
+    });
   };
 
   const savePreferencesToFirestore = async () => {
@@ -161,13 +159,19 @@ const Preferences = ({ navigation }: { navigation: any }) => {
         typesOfWorkouts: selectedTypesofWorkouts,
       };
 
+      // Use the "preferences" collection and the user's UID for the document ID
       await setDoc(
-        doc(firestore, "users", user.uid),
-        { preferences: updatedPreferences },
-        { merge: true }
+        doc(firestore, "preferences", user.uid),
+        updatedPreferences,
+        {
+          merge: true,
+        }
       )
-        .then(() => Alert.alert("Success", "Preferences saved successfully"))
-        .then(() => navigation.navigate("Dashboard"))
+        .then(() => {
+          Alert.alert("Success", "Preferences saved successfully", [
+            { text: "OK", onPress: () => navigation.navigate("Dashboard") },
+          ]);
+        })
         .catch((error) => console.error("Error saving to Firestore:", error));
     } else {
       Alert.alert("Error", "No authenticated user found.");
