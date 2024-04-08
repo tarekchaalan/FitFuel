@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,40 +7,42 @@ import {
   StyleSheet,
   Image,
   KeyboardAvoidingView,
-  Animated,
   Dimensions,
   Alert,
-} from 'react-native';
-import {sendPasswordResetEmail} from 'firebase/auth';
-import {auth} from '../firebase'; // Make sure the path matches your project structure
-import Svg, {Path} from 'react-native-svg';
+} from "react-native";
+import { sendPasswordResetEmail } from "firebase/auth";
+import { auth } from "../firebase"; // Make sure the path matches your project structure
+import Svg, { Path } from "react-native-svg";
 
-const screenHeight = Dimensions.get('window').height;
-const screenWidth = Dimensions.get('window').width;
+const screenHeight = Dimensions.get("window").height;
 
-const Forgot = ({navigation}: {navigation: any}) => {
-  const [email, setEmail] = useState('');
+const Forgot = ({ navigation }: { navigation: any }) => {
+  const [email, setEmail] = useState("");
 
   const handleResetPassword = async () => {
     try {
       await sendPasswordResetEmail(auth, email);
-      Alert.alert('Password reset email sent successfully.');
-      navigation.navigate('Login');
+      Alert.alert("Password reset email sent successfully.");
+      navigation.navigate("Login");
     } catch (error) {
-      console.error('Failed to send password reset email:', error);
-      Alert.alert('Failed to send password reset email. Please try again.');
+      console.error("Failed to send password reset email:", error);
+      Alert.alert("Failed to send password reset email. Please try again.");
     }
   };
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior="padding">
+      <View style={styles.backIconContainer}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <BackIcon />
+        </TouchableOpacity>
+      </View>
       <View style={styles.logoContainer}>
         <Image
-          source={require('../assets/images/logo.png')}
+          source={require("../assets/images/logo.png")}
           style={styles.logo}
         />
-        <Text style={styles.title}>FitFuel</Text>
-        <Text style={styles.subtitle}>Reset Your Password</Text>
+        <Text style={styles.title}>Reset Your {"\n"} Password</Text>
       </View>
       <View style={styles.inputContainer}>
         <TextInput
@@ -52,7 +54,8 @@ const Forgot = ({navigation}: {navigation: any}) => {
         />
         <TouchableOpacity
           onPress={handleResetPassword}
-          style={styles.resetButton}>
+          style={styles.resetButton}
+        >
           <Text style={styles.resetButtonText}>Send Reset Link</Text>
         </TouchableOpacity>
       </View>
@@ -61,13 +64,22 @@ const Forgot = ({navigation}: {navigation: any}) => {
       </View>
       <View style={styles.backToLoginContainer}>
         <Text style={styles.backToText}>Back to</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+        <TouchableOpacity onPress={() => navigation.navigate("Login")}>
           <Text style={styles.LoginLink}>Login</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
   );
 };
+
+const BackIcon = () => (
+  <Svg height="28" width="28" viewBox="0 0 456 600">
+    <Path
+      d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l192 192c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L77.3 256 246.6 86.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-192 192z"
+      fill="#fff"
+    />
+  </Svg>
+);
 
 const styles = StyleSheet.create({
   container: {
@@ -76,9 +88,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "flex-start",
   },
+  backIconContainer: {
+    alignSelf: "flex-start",
+    marginLeft: "3%",
+    marginTop: "15%",
+  },
   logoContainer: {
     alignItems: "center",
-    marginTop: screenHeight * 0.1,
+    marginTop: screenHeight * 0.01,
   },
   logo: {
     width: screenHeight * 0.18,
@@ -90,11 +107,6 @@ const styles = StyleSheet.create({
     fontFamily: "SFProRounded-Heavy",
     marginTop: 20,
     marginBottom: 20,
-  },
-  subtitle: {
-    fontSize: 18,
-    color: "#aaa",
-    fontFamily: "SFProText-Light",
   },
   inputContainer: {
     width: "85%",
