@@ -77,16 +77,24 @@ const ScanIngredients = ({ navigation }: { navigation: any }) => {
           <View style={styles.noteContainer}>
             <Text style={styles.noteTitle}>Instructions</Text>
             <Text style={styles.noteText}>
-              Simply take or upload images of the ingredients in your Fridge/Cabinet/Drawers, this
-              will allow our system to cook up customized meal plans.
+              To tailor-make your meal plans, simply snap or upload pictures of
+              the items in your{" "}
+              <Text style={styles.noteTextDecorated}>
+                Fridge / Cabinet / Drawers
+              </Text>
+              . This helps our system offer you customized recipes.
               {"\n"}
               {"\n"}
-              It's good to keep this updated for our system to know what kinds
-              of recipes to give you! {"\n"}
+              <Text style={styles.noteTextDecorated}>
+                Prefer not to scan?
+              </Text>{" "}
+              No worries, we can suggest some basic and easy-to-make recipes,
+              though you might not have all of the required ingredients.
               {"\n"}
-              If you recently got a couple new things from the supermarket, you
-              can either re-scan everything, or you can manually add
-              whatever you have.
+              {"\n"}
+              Keep your inventory updated, especially after grocery shopping, to
+              ensure our recommendations stay fresh and relevant. You can rescan
+              your items or manually add new ones to the list.
             </Text>
           </View>
           <View style={styles.grantContainer}>
@@ -185,6 +193,11 @@ const styles = StyleSheet.create({
     fontFamily: "SFProText-Light",
     color: "#fff",
   },
+  noteTextDecorated: {
+    color: "#9A2CE8",
+    fontFamily: "SFProText-Heavy",
+    textDecorationLine: "underline",
+  },
   grantContainer: {
     flex: 1,
     justifyContent: "center",
@@ -223,24 +236,24 @@ const styles = StyleSheet.create({
     marginTop: "20%",
     width: "100%",
     height: "95%",
-    marginBottom: 30,
+    marginBottom: 20,
   },
   captureButton: {
     position: "absolute",
-    bottom: 65,
+    bottom: 70,
     alignSelf: "center",
-    width: 85,
-    height: 85,
-    borderRadius: 50,
-    backgroundColor: "#333",
+    width: 60,
+    height: 60,
+    borderRadius: 35,
+    backgroundColor: "#fff",
     justifyContent: "center",
     alignItems: "center",
   },
   captureButtonInner: {
-    width: 60,
-    height: 60,
+    width: 55,
+    height: 55,
     borderRadius: 30,
-    backgroundColor: "#fff",
+    backgroundColor: "#aaa",
   },
   button: {
     borderRadius: 20,
