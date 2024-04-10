@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import {
   StyleSheet,
   View,
@@ -8,9 +8,26 @@ import {
   StatusBar,
   Alert,
 } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { Svg, Path } from "react-native-svg";
 import * as ImagePicker from "expo-image-picker";
-import { Camera, requestCameraPermissionsAsync, CameraType } from "expo-camera";
+import { CameraView, Camera } from "expo-camera/next";
+
+interface NutritionalInfo {
+  calories: string;
+  protein: string;
+  fat: string;
+  saturatedFat: string;
+  sodium: string;
+  carbohydrates: string;
+  fiber: string;
+}
+
+interface ProductInfo {
+  image_url: string;
+  name: string;
+  nutritional_info: NutritionalInfo; // Adding the nutritional_info structure
+}
 
 const BackIcon = () => (
   <Svg height="28" width="28" viewBox="0 0 456 600">
@@ -30,41 +47,29 @@ const ResultsIcon = () => (
   </Svg>
 );
 
-const SwitchIcon = () => (
-  <Svg height="35" width="35" viewBox="0 0 24 24">
-    <Path
-      d="M8.70711 4.70711C9.09763 4.31658 9.09763 3.68342 8.70711 3.29289C8.31658 2.90237 7.68342 2.90237 7.29289 3.29289L3.29289 7.29289C2.90237 7.68342 2.90237 8.31658 3.29289 8.70711L7.29289 12.7071C7.68342 13.0976 8.31658 13.0976 8.70711 12.7071C9.09763 12.3166 9.09763 11.6834 8.70711 11.2929L6.41421 9H16C16.5523 9 17 8.55228 17 8C17 7.44772 16.5523 7 16 7H6.41421L8.70711 4.70711ZM20.7071 15.2929L16.7071 11.2929C16.3166 10.9024 15.6834 10.9024 15.2929 11.2929C14.9024 11.6834 14.9024 12.3166 15.2929 12.7071L17.5858 15H8C7.44772 15 7 15.4477 7 16C7 16.5523 7.44772 17 8 17H17.5858L15.2929 19.2929C14.9024 19.6834 14.9024 20.3166 15.2929 20.7071C15.6834 21.0976 16.3166 21.0976 16.7071 20.7071L20.7071 16.7071C21.0976 16.3166 21.0976 15.6834 20.7071 15.2929Z"
-      fill="#fff"
-    />
-  </Svg>
-);
-
 const MacroChecker = ({ navigation }: { navigation: any }) => {
   const [hasCameraPermission, setHasCameraPermission] = useState<
     boolean | null
   >(null);
-  const [mode, setMode] = useState<"food" | "barcode" | null>(null);
+  const [scanned, setScanned] = useState(false);
+  const [productInfo, setProductInfo] = useState<ProductInfo | null>(null);
 
-  useEffect(() => {
-    (async () => {
-      const { status } = await requestCameraPermissionsAsync();
-      setHasCameraPermission(status === "granted");
-    })();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      setScanned(false);
+    }, [])
+  );
 
-  const toggleMode = () => {
-    setMode((prevMode) => (prevMode === "food" ? "barcode" : "food"));
-  };
+  const handleCameraLaunch = async () => {
+    const { status } = await Camera.requestCameraPermissionsAsync();
+    setHasCameraPermission(status === "granted");
 
-  const handlePress = (selectedMode: any) => {
-    if (!hasCameraPermission) {
+    if (status !== "granted") {
       Alert.alert(
         "Permission Required",
         "We need camera permissions to make this work!"
       );
-      return;
     }
-    setMode(selectedMode);
   };
 
   const pickImage = async () => {
@@ -75,30 +80,50 @@ const MacroChecker = ({ navigation }: { navigation: any }) => {
     });
   };
 
-  const renderCamera = () => {
-    if (mode === "food") {
-      return <Camera style={styles.camera} type={CameraType.back}></Camera>;
-    } else if (mode === "barcode") {
-      return (
-        <View style={styles.camera}>
-          <View style={styles.blurOverlay} />
-          <View style={styles.scannerWindow}>
-            <Camera style={styles.fullSize} type={CameraType.back} />
-            <View style={styles.scanLineContainer}>
-              <View style={styles.scanLine} />
-            </View>
-          </View>
-        </View>
-      );
+  const handleBarCodeScanned = ({ data }: any) => {
+    if (!scanned) {
+      setScanned(true);
+      const barcode = data.replace(/-/g, "");
+      fetchProductInfo(barcode);
     }
   };
 
-  const pageTitle = mode === "food" ? "Food Scanner" : "Barcode Scanner";
+  const fetchProductInfo = async (barcode: string) => {
+    try {
+      const response = await fetch(
+        `https://world.openfoodfacts.org/api/v0/product/${barcode}.json`
+      );
+      const data = await response.json();
+      if (data.product) {
+        const nutriments = data.product.nutriments;
+        const productInfo = {
+          image_url: data.product.image_front_url,
+          name: data.product.product_name,
+          nutritional_info: {
+            calories: `${nutriments["energy-kcal_100g"]} kcal`,
+            protein: `${nutriments["proteins_100g"]} g`,
+            fat: `${nutriments["fat_100g"]} g`,
+            saturatedFat: `${nutriments["saturated-fat_100g"]} g`,
+            sodium: `${nutriments["sodium_100g"]} g`,
+            carbohydrates: `${nutriments["carbohydrates_100g"]} g`,
+            fiber: `${nutriments["fiber_100g"]} g`,
+          },
+        };
+        setProductInfo(productInfo);
+        console.log("Navigating to results page" + barcode + productInfo);
+        navigation.navigate("BarcodeResults", { productInfo });
+      } else {
+        Alert.alert("Product not found");
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Failed to fetch product info");
+    }
+  };
 
-  if (!mode) {
+  if (hasCameraPermission === null || hasCameraPermission === false) {
     return (
       <View style={styles.container}>
-        {/* UI for selecting the mode */}
         <SafeAreaView style={styles.safeArea}>
           <StatusBar barStyle="light-content" />
           <View style={styles.IconsContainer}>
@@ -132,15 +157,9 @@ const MacroChecker = ({ navigation }: { navigation: any }) => {
           <View style={styles.grantContainer}>
             <TouchableOpacity
               style={styles.grantButton}
-              onPress={() => handlePress("food")}
+              onPress={handleCameraLaunch}
             >
-              <Text style={styles.grantText}>Scan Food</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.grantButton}
-              onPress={() => handlePress("barcode")}
-            >
-              <Text style={styles.grantText}>Scan Barcode</Text>
+              <Text style={styles.grantText}>Continue</Text>
             </TouchableOpacity>
           </View>
         </SafeAreaView>
@@ -155,7 +174,7 @@ const MacroChecker = ({ navigation }: { navigation: any }) => {
         <View style={styles.IconsContainer}>
           <TouchableOpacity
             style={styles.BackIcon}
-            onPress={() => setMode(null)}
+            onPress={() => navigation.navigate("Meals")}
           >
             <BackIcon />
           </TouchableOpacity>
@@ -166,38 +185,24 @@ const MacroChecker = ({ navigation }: { navigation: any }) => {
             <ResultsIcon />
           </TouchableOpacity>
         </View>
-        <Text style={styles.pageHeader}>
-          {mode
-            ? mode === "food"
-              ? "Food Scanner"
-              : "Barcode Scanner"
-            : "Select Mode"}
-        </Text>
+        <View>
+          <Text style={styles.pageHeader}>Macro Checker</Text>
+        </View>
         <View style={styles.scanButton}>
-          {renderCamera()}
-          <View style={styles.CameraButtons}>
-            {mode && (
-              <>
-                <TouchableOpacity
-                  style={styles.captureButton}
-                  onPress={() => {}}
-                >
-                  <View style={styles.captureButtonInner} />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.SwitchButton}
-                  onPress={toggleMode}
-                >
-                  <SwitchIcon />
-                </TouchableOpacity>
-              </>
-            )}
-          </View>
-          {mode === "food" && (
-            <TouchableOpacity style={styles.button} onPress={pickImage}>
-              <Text style={styles.textStyle}>Select Photos</Text>
-            </TouchableOpacity>
-          )}
+          <CameraView
+            style={styles.camera}
+            onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
+            barcodeScannerSettings={{
+              barcodeTypes: ["qr", "ean13"],
+            }}
+          ></CameraView>
+          <TouchableOpacity style={styles.captureButton} onPress={() => {}}>
+            <View style={styles.captureButtonInner} />
+          </TouchableOpacity>
+          <Text style={styles.orText}>OR</Text>
+          <TouchableOpacity style={styles.button} onPress={pickImage}>
+            <Text style={styles.textStyle}>Select Photos</Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     </View>
@@ -226,6 +231,7 @@ const styles = StyleSheet.create({
     fontFamily: "SFProRounded-Heavy",
     color: "#fff",
     textAlign: "center",
+    marginBottom: 20,
   },
   noteContainer: {
     marginLeft: "5%",
@@ -244,11 +250,6 @@ const styles = StyleSheet.create({
     fontFamily: "SFProText-Light",
     color: "#fff",
   },
-  noteTextDecorated: {
-    color: "#9A2CE8",
-    fontFamily: "SFProText-Heavy",
-    textDecorationLine: "underline",
-  },
   grantContainer: {
     flex: 1,
     justifyContent: "center",
@@ -257,10 +258,9 @@ const styles = StyleSheet.create({
   },
   grantButton: {
     borderRadius: 20,
-    width: "auto",
+    width: "40%",
     padding: 10,
     elevation: 2,
-    marginTop: 10,
     backgroundColor: "#fff",
   },
   grantText: {
@@ -273,7 +273,6 @@ const styles = StyleSheet.create({
     color: "black",
     fontSize: 24,
     fontWeight: "bold",
-    justifyContent: "center",
     textAlign: "center",
   },
   scanButton: {
@@ -286,28 +285,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   camera: {
-    width: "110%",
-    marginBottom: 10,
-    flex: 1,
-    justifyContent: "flex-end",
-    alignItems: "center",
-    position: "relative",
-  },
-  CameraButtons: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: "20%",
-    flexDirection: "row",
-    justifyContent: "center", // Center the capture button
-    alignItems: "center",
+    marginTop: "20%",
+    width: "100%", // Take up the full width of the screen
+    height: "95%",
+    marginBottom: 30,
   },
   captureButton: {
-    justifyContent: "center",
+    position: "absolute",
+    bottom: 70,
+    alignSelf: "center",
     width: 60,
     height: 60,
     borderRadius: 35,
     backgroundColor: "#fff",
+    justifyContent: "center",
     alignItems: "center",
   },
   captureButtonInner: {
@@ -315,12 +306,6 @@ const styles = StyleSheet.create({
     height: 55,
     borderRadius: 30,
     backgroundColor: "#aaa",
-  },
-  SwitchButton: {
-    position: "absolute",
-    right: 25, // Adjust as needed for padding from the right edge
-    justifyContent: "center",
-    alignItems: "center",
   },
   button: {
     borderRadius: 20,
@@ -331,35 +316,11 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     marginTop: 20,
   },
-  blurOverlay: {
-    position: "absolute",
-  },
-  scannerWindow: {
-    position: "absolute",
-    left: "10%",
-    right: "10%",
-    top: "10%",
-    bottom: "50%",
-    borderWidth: 2,
-    borderColor: "white",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  fullSize: {
-    width: "100%",
-    height: "100%",
-  },
-  scanLineContainer: {
-    position: "absolute",
-    height: "100%",
-    width: "100%",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  scanLine: {
-    height: 2,
-    width: "80%",
-    backgroundColor: "red",
+  orText: {
+    color: "#fff",
+    fontSize: 28,
+    fontFamily: "SFProRounded-Heavy",
+    textAlign: "center",
   },
 });
 
