@@ -64,7 +64,7 @@ const Meals = ({ navigation }: MealProps) => {
             />
             <ClickableItem
               title="Macro Checker"
-              description="Snap a picture of your food/barcodes to view its macros"
+              description="Scan a picture of your barcodes to view its macros"
               imageSource={scanfood}
               navigation={navigation}
               routeName="MacroChecker"
