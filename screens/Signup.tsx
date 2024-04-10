@@ -16,8 +16,8 @@ import {
   createUserWithEmailAndPassword,
   updateProfile,
   sendEmailVerification,
-  GoogleAuthProvider,
-  signInWithCredential,
+  // GoogleAuthProvider,
+  // signInWithCredential,
 } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { firestore } from "../firebase";
@@ -28,10 +28,10 @@ import Svg, { Path, Circle } from "react-native-svg";
 import * as ImagePicker from "expo-image-picker";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../firebase";
-import {
-  GoogleSignin,
-  statusCodes,
-} from "@react-native-google-signin/google-signin";
+// import {
+//   GoogleSignin,
+//   statusCodes,
+// } from "@react-native-google-signin/google-signin";
 
 const Signup = ({ navigation }: { navigation: any }) => {
   const [profileImage, setProfileImage] = useState<string | null>(null);
@@ -44,48 +44,48 @@ const Signup = ({ navigation }: { navigation: any }) => {
   const [password, setPassword] = useState<string>("");
   const [formattedPhoneNumber, setFormattedPhoneNumber] = useState<string>("");
   const [passwordVisible, setPasswordVisible] = useState<boolean>(false);
-  const [userInfo, setUserInfo] = useState<any>(null);
+  // const [userInfo, setUserInfo] = useState<any>(null);
   const rotateValueHolder = new Animated.Value(0);
 
-  GoogleSignin.configure({
-    scopes: ["https://www.googleapis.com/auth/drive.readonly"], // what API you want to access on behalf of the user, default is email and profile
-    webClientId:
-      "1067533845800-qk6km2dp49dagcn6b59tqra0a91vsehm.apps.googleusercontent.com", // client ID of type WEB for your server (needed to verify user ID and offline access). Required to get the `idToken` on the user object!
-  });
+  // GoogleSignin.configure({
+  //   scopes: ["https://www.googleapis.com/auth/drive.readonly"], // what API you want to access on behalf of the user, default is email and profile
+  //   webClientId:
+  //     "1067533845800-qk6km2dp49dagcn6b59tqra0a91vsehm.apps.googleusercontent.com", // client ID of type WEB for your server (needed to verify user ID and offline access). Required to get the `idToken` on the user object!
+  // });
 
-  const googlesignIn = async () => {
-    try {
-      const { idToken, user: googleUser } = await GoogleSignin.signIn();
-      const googleCredential = GoogleAuthProvider.credential(idToken);
-      const userCredential = await signInWithCredential(auth, googleCredential);
-      const firebaseUser = userCredential.user; // This is the Firebase Auth user
+  // const googlesignIn = async () => {
+  //   try {
+  //     const { idToken, user: googleUser } = await GoogleSignin.signIn();
+  //     const googleCredential = GoogleAuthProvider.credential(idToken);
+  //     const userCredential = await signInWithCredential(auth, googleCredential);
+  //     const firebaseUser = userCredential.user; // This is the Firebase Auth user
 
-      // Now use firebaseUser.uid (Firebase Auth user ID) to reference the user in Firestore
-      await setDoc(doc(firestore, "users", firebaseUser.uid), {
-        fullName: googleUser.givenName + " " + googleUser.familyName,
-        username: googleUser.givenName,
-        countryCode: "",
-        phoneNumber: "",
-        email: googleUser.email,
-        profilePicture: googleUser.photo,
-      });
+  //     // Now use firebaseUser.uid (Firebase Auth user ID) to reference the user in Firestore
+  //     await setDoc(doc(firestore, "users", firebaseUser.uid), {
+  //       fullName: googleUser.givenName + " " + googleUser.familyName,
+  //       username: googleUser.givenName,
+  //       countryCode: "",
+  //       phoneNumber: "",
+  //       email: googleUser.email,
+  //       profilePicture: googleUser.photo,
+  //     });
 
-      // After successful signup, navigate to "Preferences" or another appropriate screen
-      navigation.navigate("Preferences");
-    } catch (error: any) {
-      // Handle errors
-      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-        // User cancelled the login flow
-      } else if (error.code === statusCodes.IN_PROGRESS) {
-        // Operation (e.g., sign in) is in progress already
-      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        // Play services not available or outdated
-      } else {
-        // Some other error happened
-        console.error("Google Sign-In error:", error);
-      }
-    }
-  };
+  //     // After successful signup, navigate to "Preferences" or another appropriate screen
+  //     navigation.navigate("Preferences");
+  //   } catch (error: any) {
+  //     // Handle errors
+  //     if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+  //       // User cancelled the login flow
+  //     } else if (error.code === statusCodes.IN_PROGRESS) {
+  //       // Operation (e.g., sign in) is in progress already
+  //     } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+  //       // Play services not available or outdated
+  //     } else {
+  //       // Some other error happened
+  //       console.error("Google Sign-In error:", error);
+  //     }
+  //   }
+  // };
 
   useEffect(() => {
     // Only set the country code to US if it hasn't been selected yet
@@ -275,7 +275,7 @@ const Signup = ({ navigation }: { navigation: any }) => {
         <TouchableOpacity onPress={handleSignUp} style={styles.SignUpButton}>
           <Text style={styles.SignUpButtonText}>Sign Up</Text>
         </TouchableOpacity>
-        <View style={styles.orContainer}>
+        {/* <View style={styles.orContainer}>
           <View style={styles.line} />
           <Text style={styles.orText}>or</Text>
           <View style={styles.line} />
@@ -292,7 +292,7 @@ const Signup = ({ navigation }: { navigation: any }) => {
             <GithubIcon />
             <Text style={styles.GithubButtonText}>Github</Text>
           </TouchableOpacity>
-        </View>
+        </View> */}
         <View style={styles.LoginContainer}>
           <Text style={styles.LoginText}>Already Have an Account?</Text>
           <TouchableOpacity onPress={() => navigation.navigate("Login")}>
