@@ -196,7 +196,6 @@ const styles = StyleSheet.create({
   noteTextDecorated: {
     color: "#9A2CE8",
     fontFamily: "SFProText-Heavy",
-    textDecorationLine: "underline",
   },
   grantContainer: {
     flex: 1,
