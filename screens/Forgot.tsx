@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
+  ScrollView,
   KeyboardAvoidingView,
   Dimensions,
   Alert,
@@ -31,44 +32,46 @@ const Forgot = ({ navigation }: { navigation: any }) => {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior="padding">
-      <View style={styles.backIconContainer}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <BackIcon />
-        </TouchableOpacity>
-      </View>
-      <View style={styles.logoContainer}>
-        <Image
-          source={require("../assets/images/logo.png")}
-          style={styles.logo}
-        />
-        <Text style={styles.title}>Reset Your {"\n"} Password</Text>
-      </View>
-      <View style={styles.inputContainer}>
-        <TextInput
-          placeholder="Enter your email address"
-          value={email}
-          onChangeText={setEmail}
-          placeholderTextColor="#aaaaaa"
-          style={styles.input}
-        />
-        <TouchableOpacity
-          onPress={handleResetPassword}
-          style={styles.resetButton}
-        >
-          <Text style={styles.resetButtonText}>Send Reset Link</Text>
-        </TouchableOpacity>
-      </View>
-      <View>
-        <Text style={styles.checkJunk}> Check Spam & Junk Folders </Text>
-      </View>
-      <View style={styles.backToLoginContainer}>
-        <Text style={styles.backToText}>Back to</Text>
-        <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-          <Text style={styles.LoginLink}>Login</Text>
-        </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <KeyboardAvoidingView style={styles.container} behavior="padding">
+        <View style={styles.backIconContainer}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <BackIcon />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.logoContainer}>
+          <Image
+            source={require("../assets/images/logo.png")}
+            style={styles.logo}
+          />
+          <Text style={styles.title}>Reset Your {"\n"} Password</Text>
+        </View>
+        <View style={styles.inputContainer}>
+          <TextInput
+            placeholder="Enter your email address"
+            value={email}
+            onChangeText={setEmail}
+            placeholderTextColor="#aaaaaa"
+            style={styles.input}
+          />
+          <TouchableOpacity
+            onPress={handleResetPassword}
+            style={styles.resetButton}
+          >
+            <Text style={styles.resetButtonText}>Send Reset Link</Text>
+          </TouchableOpacity>
+        </View>
+        <View>
+          <Text style={styles.checkJunk}> Check Spam & Junk Folders </Text>
+        </View>
+        <View style={styles.backToLoginContainer}>
+          <Text style={styles.backToText}>Back to</Text>
+          <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+            <Text style={styles.LoginLink}>Login</Text>
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    </ScrollView>
   );
 };
 
@@ -82,6 +85,9 @@ const BackIcon = () => (
 );
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    flexGrow: 1,
+  },
   container: {
     flex: 1,
     backgroundColor: "#000",
@@ -144,8 +150,6 @@ const styles = StyleSheet.create({
   },
   backToLoginContainer: {
     flexDirection: "row",
-    marginBottom: 20,
-    marginTop: "70%",
   },
   backToText: {
     color: "#aaa",

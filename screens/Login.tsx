@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,12 +7,17 @@ import {
   Image,
   StyleSheet,
   Dimensions,
+  ScrollView,
   KeyboardAvoidingView,
   Animated,
   Alert,
 } from "react-native";
 import { auth } from "../firebase";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import {
+  signInWithEmailAndPassword,
+  signInWithCredential,
+  GoogleAuthProvider,
+} from "firebase/auth";
 import {
   getFirestore,
   collection,
@@ -22,6 +27,10 @@ import {
 } from "firebase/firestore";
 import Svg, { Path, Circle } from "react-native-svg";
 import { StackNavigationProp } from "@react-navigation/stack";
+import {
+  GoogleSignin,
+  statusCodes,
+} from "@react-native-google-signin/google-signin";
 
 interface LoginProps {
   navigation: StackNavigationProp<any, any>;
@@ -29,11 +38,43 @@ interface LoginProps {
 
 const firestore = getFirestore();
 
-const Login: React.FC<LoginProps> = ({ navigation }) => {
+const Login = ({ navigation }: { navigation: any }) => {
   const [password, setPassword] = useState<string>("");
   const [identifier, setidentifier] = useState<string>("");
   const [passwordVisible, setPasswordVisible] = useState<boolean>(false);
   const rotateValueHolder = new Animated.Value(0);
+
+  GoogleSignin.configure({
+    scopes: ["https://www.googleapis.com/auth/drive.readonly"], // what API you want to access on behalf of the user, default is email and profile
+    webClientId:
+      "1067533845800-qk6km2dp49dagcn6b59tqra0a91vsehm.apps.googleusercontent.com", // client ID of type WEB for your server (needed to verify user ID and offline access). Required to get the `idToken` on the user object!
+  });
+
+  const googlesignIn = async () => {
+    try {
+      await GoogleSignin.hasPlayServices();
+      const { idToken } = await GoogleSignin.signIn();
+      const googleCredential = GoogleAuthProvider.credential(idToken);
+      await signInWithCredential(auth, googleCredential);
+
+      console.log("User logged in with Google");
+      navigation.navigate("Dashboard"); // Or wherever you want the user to go after logging in
+    } catch (error: any) {
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        // User cancelled the login flow
+        console.log("User cancelled the login flow.");
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        // Operation (e.g., sign in) is in progress already
+        console.log("Operation (e.g., sign in) is in progress already.");
+      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        // Play services not available or outdated
+        console.log("Play services not available or outdated.");
+      } else {
+        // Some other error happened
+        console.error(error);
+      }
+    }
+  };
 
   const getEmailByUsername = async (
     username: string
@@ -108,84 +149,86 @@ const Login: React.FC<LoginProps> = ({ navigation }) => {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior="padding">
-      <View style={styles.logoContainer}>
-        <Image
-          source={require("../assets/images/logo.png")}
-          style={styles.logo}
-        />
-        <Text style={styles.title}>FitFuel</Text>
-        <Text style={styles.subtitle}>Achieve your fitness goals</Text>
-      </View>
-      <View style={styles.inputContainer}>
-        <View style={styles.inputFieldContainer}>
-          <TextInput
-            placeholder="Email or Username"
-            value={identifier}
-            onChangeText={(text) => setidentifier(text)}
-            placeholderTextColor="#aaaaaa"
-            style={styles.input}
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <KeyboardAvoidingView style={styles.container}>
+        <View style={styles.logoContainer}>
+          <Image
+            source={require("../assets/images/logo.png")}
+            style={styles.logo}
           />
+          <Text style={styles.title}>FitFuel</Text>
+          <Text style={styles.subtitle}>Achieve your fitness goals</Text>
         </View>
-        <View style={styles.inputFieldContainer}>
-          <TextInput
-            placeholder="Password"
-            value={password}
-            onChangeText={(text) => setPassword(text)}
-            placeholderTextColor="#aaaaaa"
-            secureTextEntry={!passwordVisible}
-            key={passwordVisible ? "hidden" : "visible"} // Add this line
-            style={styles.input}
-          />
-          <TouchableOpacity
-            onPress={togglePasswordVisibility}
-            style={styles.eyeIcon}
-          >
-            <Animated.View style={animatedStyle}>
-              {passwordVisible ? <OpenEyeIcon /> : <ClosedEyeIcon />}
-            </Animated.View>
+        <View style={styles.inputContainer}>
+          <View style={styles.inputFieldContainer}>
+            <TextInput
+              placeholder="Email or Username"
+              value={identifier}
+              onChangeText={(text) => setidentifier(text)}
+              placeholderTextColor="#aaaaaa"
+              style={styles.input}
+            />
+          </View>
+          <View style={styles.inputFieldContainer}>
+            <TextInput
+              placeholder="Password"
+              value={password}
+              onChangeText={(text) => setPassword(text)}
+              placeholderTextColor="#aaaaaa"
+              secureTextEntry={!passwordVisible}
+              key={passwordVisible ? "hidden" : "visible"} // Add this line
+              style={styles.input}
+            />
+            <TouchableOpacity
+              onPress={togglePasswordVisibility}
+              style={styles.eyeIcon}
+            >
+              <Animated.View style={animatedStyle}>
+                {passwordVisible ? <OpenEyeIcon /> : <ClosedEyeIcon />}
+              </Animated.View>
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity>
+            <Text
+              style={styles.forgotPassword}
+              onPress={() => navigation.navigate("Forgot")}
+            >
+              Forgot your Password?
+            </Text>
           </TouchableOpacity>
         </View>
-        <TouchableOpacity>
-          <Text
-            style={styles.forgotPassword}
-            onPress={() => navigation.navigate("Forgot")}
-          >
-            Forgot your Password?
-          </Text>
+        <TouchableOpacity
+          onPress={() => handleLogin(identifier)}
+          style={styles.loginButton}
+        >
+          <Text style={styles.loginButtonText}>Log in</Text>
         </TouchableOpacity>
-      </View>
-      <TouchableOpacity
-        onPress={() => handleLogin(identifier)}
-        style={styles.loginButton}
-      >
-        <Text style={styles.loginButtonText}>Log in</Text>
-      </TouchableOpacity>
-      <View style={styles.orContainer}>
-        <View style={styles.line} />
-        <Text style={styles.orText}>or</Text>
-        <View style={styles.line} />
-      </View>
-      <View style={styles.LIW}>
-        <Text style={styles.LIWText}>Login with</Text>
-      </View>
-      <View style={styles.socialLoginContainer}>
-        <TouchableOpacity style={styles.GoogleButton}>
-          <GoogleIcon />
-          <Text style={styles.GoogleButtonText}>Google</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.GithubButton}>
-          <GithubIcon />
-          <Text style={styles.GithubButtonText}>Github</Text>
-        </TouchableOpacity>
-      </View>
-      <View style={styles.signupContainer}>
-        <Text style={styles.signupText}>New User?</Text>
-        <TouchableOpacity onPress={() => navigation.navigate("Signup")}>
-          <Text style={styles.signupLink}>Sign up</Text>
-        </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+        <View style={styles.orContainer}>
+          <View style={styles.line} />
+          <Text style={styles.orText}>or</Text>
+          <View style={styles.line} />
+        </View>
+        <View style={styles.LIW}>
+          <Text style={styles.LIWText}>Login with</Text>
+        </View>
+        <View style={styles.socialLoginContainer}>
+          <TouchableOpacity style={styles.GoogleButton} onPress={googlesignIn}>
+            <GoogleIcon />
+            <Text style={styles.GoogleButtonText}>Google</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.GithubButton}>
+            <GithubIcon />
+            <Text style={styles.GithubButtonText}>Github</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.signupContainer}>
+          <Text style={styles.signupText}>New User?</Text>
+          <TouchableOpacity onPress={() => navigation.navigate("Signup")}>
+            <Text style={styles.signupLink}>Sign up</Text>
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    </ScrollView>
   );
 };
 
@@ -278,6 +321,9 @@ const OpenEyeIcon = () => (
 const screenHeight = Dimensions.get("window").height;
 const logoSizeFactor = 0.18;
 const styles = StyleSheet.create({
+  scrollContainer: {
+    flexGrow: 1,
+  },
   container: {
     flex: 1,
     backgroundColor: "#000",

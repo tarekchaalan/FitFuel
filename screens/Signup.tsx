@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Image,
   StyleSheet,
+  ScrollView,
   KeyboardAvoidingView,
   Animated,
   Alert,
@@ -15,6 +16,8 @@ import {
   createUserWithEmailAndPassword,
   updateProfile,
   sendEmailVerification,
+  GoogleAuthProvider,
+  signInWithCredential,
 } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { firestore } from "../firebase";
@@ -25,6 +28,10 @@ import Svg, { Path, Circle } from "react-native-svg";
 import * as ImagePicker from "expo-image-picker";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../firebase";
+import {
+  GoogleSignin,
+  statusCodes,
+} from "@react-native-google-signin/google-signin";
 
 const Signup = ({ navigation }: { navigation: any }) => {
   const [profileImage, setProfileImage] = useState<string | null>(null);
@@ -37,7 +44,48 @@ const Signup = ({ navigation }: { navigation: any }) => {
   const [password, setPassword] = useState<string>("");
   const [formattedPhoneNumber, setFormattedPhoneNumber] = useState<string>("");
   const [passwordVisible, setPasswordVisible] = useState<boolean>(false);
+  const [userInfo, setUserInfo] = useState<any>(null);
   const rotateValueHolder = new Animated.Value(0);
+
+  GoogleSignin.configure({
+    scopes: ["https://www.googleapis.com/auth/drive.readonly"], // what API you want to access on behalf of the user, default is email and profile
+    webClientId:
+      "1067533845800-qk6km2dp49dagcn6b59tqra0a91vsehm.apps.googleusercontent.com", // client ID of type WEB for your server (needed to verify user ID and offline access). Required to get the `idToken` on the user object!
+  });
+
+  const googlesignIn = async () => {
+    try {
+      const { idToken, user: googleUser } = await GoogleSignin.signIn();
+      const googleCredential = GoogleAuthProvider.credential(idToken);
+      const userCredential = await signInWithCredential(auth, googleCredential);
+      const firebaseUser = userCredential.user; // This is the Firebase Auth user
+
+      // Now use firebaseUser.uid (Firebase Auth user ID) to reference the user in Firestore
+      await setDoc(doc(firestore, "users", firebaseUser.uid), {
+        fullName: googleUser.givenName + " " + googleUser.familyName,
+        username: googleUser.givenName,
+        countryCode: "",
+        phoneNumber: "",
+        email: googleUser.email,
+        profilePicture: googleUser.photo,
+      });
+
+      // After successful signup, navigate to "Preferences" or another appropriate screen
+      navigation.navigate("Preferences");
+    } catch (error: any) {
+      // Handle errors
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        // User cancelled the login flow
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        // Operation (e.g., sign in) is in progress already
+      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        // Play services not available or outdated
+      } else {
+        // Some other error happened
+        console.error("Google Sign-In error:", error);
+      }
+    }
+  };
 
   useEffect(() => {
     // Only set the country code to US if it hasn't been selected yet
@@ -155,102 +203,104 @@ const Signup = ({ navigation }: { navigation: any }) => {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior="padding">
-      <View style={styles.logoContainer}>
-        <Text style={styles.title}>Join Us!</Text>
-        <TouchableOpacity onPress={pickImage} style={styles.pfpInput}>
-          {profileImage ? (
-            <Image
-              source={{ uri: profileImage }} // Use uri instead of assets
-              style={styles.profileImage}
-              resizeMode="cover"
-            />
-          ) : (
-            <UploadPFPIcon />
-          )}
-        </TouchableOpacity>
-      </View>
-      <View style={styles.inputContainer}>
-        <TextInput
-          placeholder="Full Name"
-          value={fullName}
-          onChangeText={(text) => setFullName(text)}
-          placeholderTextColor="#aaaaaa"
-          style={styles.input}
-        />
-        <TextInput
-          placeholder="Username"
-          value={username}
-          onChangeText={(text) => setUsername(text)}
-          placeholderTextColor="#aaaaaa"
-          style={styles.input}
-        />
-        <TextInput
-          placeholder="Email"
-          value={email}
-          onChangeText={(text) => setEmail(text)}
-          placeholderTextColor="#aaaaaa"
-          style={styles.input}
-        />
-        <View style={styles.CountryContainer}>
-          {renderCallingCode()}
-          <TextInput
-            placeholder="Phone Number"
-            value={formattedPhoneNumber}
-            onChangeText={handlePhoneNumberChange} // Correctly hook up the handler here
-            placeholderTextColor="#aaaaaa"
-            keyboardType="phone-pad"
-            style={styles.Numberinput}
-          />
-        </View>
-        <View style={styles.inputFieldContainer}>
-          <TextInput
-            placeholder="Password"
-            value={password}
-            onChangeText={(text) => setPassword(text)}
-            placeholderTextColor="#aaaaaa"
-            secureTextEntry={!passwordVisible}
-            key={passwordVisible ? "hidden" : "visible"}
-            style={styles.input}
-          />
-          <TouchableOpacity
-            onPress={togglePasswordVisibility}
-            style={styles.eyeIcon}
-          >
-            <Animated.View style={animatedStyle}>
-              {passwordVisible ? <OpenEyeIcon /> : <ClosedEyeIcon />}
-            </Animated.View>
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <KeyboardAvoidingView style={styles.container} behavior="padding">
+        <View style={styles.logoContainer}>
+          <Text style={styles.title}>Join Us!</Text>
+          <TouchableOpacity onPress={pickImage} style={styles.pfpInput}>
+            {profileImage ? (
+              <Image
+                source={{ uri: profileImage }} // Use uri instead of assets
+                style={styles.profileImage}
+                resizeMode="cover"
+              />
+            ) : (
+              <UploadPFPIcon />
+            )}
           </TouchableOpacity>
         </View>
-      </View>
-      <TouchableOpacity onPress={handleSignUp} style={styles.SignUpButton}>
-        <Text style={styles.SignUpButtonText}>Sign Up</Text>
-      </TouchableOpacity>
-      <View style={styles.orContainer}>
-        <View style={styles.line} />
-        <Text style={styles.orText}>or</Text>
-        <View style={styles.line} />
-      </View>
-      <View style={styles.SUW}>
-        <Text style={styles.SUWText}>Signup with</Text>
-      </View>
-      <View style={styles.socialLoginContainer}>
-        <TouchableOpacity style={styles.GoogleButton}>
-          <GoogleIcon />
-          <Text style={styles.GoogleButtonText}>Google</Text>
+        <View style={styles.inputContainer}>
+          <TextInput
+            placeholder="Full Name"
+            value={fullName}
+            onChangeText={(text) => setFullName(text)}
+            placeholderTextColor="#aaaaaa"
+            style={styles.input}
+          />
+          <TextInput
+            placeholder="Username"
+            value={username}
+            onChangeText={(text) => setUsername(text)}
+            placeholderTextColor="#aaaaaa"
+            style={styles.input}
+          />
+          <TextInput
+            placeholder="Email"
+            value={email}
+            onChangeText={(text) => setEmail(text)}
+            placeholderTextColor="#aaaaaa"
+            style={styles.input}
+          />
+          <View style={styles.CountryContainer}>
+            {renderCallingCode()}
+            <TextInput
+              placeholder="Phone Number"
+              value={formattedPhoneNumber}
+              onChangeText={handlePhoneNumberChange} // Correctly hook up the handler here
+              placeholderTextColor="#aaaaaa"
+              keyboardType="phone-pad"
+              style={styles.Numberinput}
+            />
+          </View>
+          <View style={styles.inputFieldContainer}>
+            <TextInput
+              placeholder="Password"
+              value={password}
+              onChangeText={(text) => setPassword(text)}
+              placeholderTextColor="#aaaaaa"
+              secureTextEntry={!passwordVisible}
+              key={passwordVisible ? "hidden" : "visible"}
+              style={styles.input}
+            />
+            <TouchableOpacity
+              onPress={togglePasswordVisibility}
+              style={styles.eyeIcon}
+            >
+              <Animated.View style={animatedStyle}>
+                {passwordVisible ? <OpenEyeIcon /> : <ClosedEyeIcon />}
+              </Animated.View>
+            </TouchableOpacity>
+          </View>
+        </View>
+        <TouchableOpacity onPress={handleSignUp} style={styles.SignUpButton}>
+          <Text style={styles.SignUpButtonText}>Sign Up</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.GithubButton}>
-          <GithubIcon />
-          <Text style={styles.GithubButtonText}>Github</Text>
-        </TouchableOpacity>
-      </View>
-      <View style={styles.LoginContainer}>
-        <Text style={styles.LoginText}>Already Have an Account?</Text>
-        <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-          <Text style={styles.LoginLink}>Login</Text>
-        </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+        <View style={styles.orContainer}>
+          <View style={styles.line} />
+          <Text style={styles.orText}>or</Text>
+          <View style={styles.line} />
+        </View>
+        <View style={styles.SUW}>
+          <Text style={styles.SUWText}>Signup with</Text>
+        </View>
+        <View style={styles.socialLoginContainer}>
+          <TouchableOpacity style={styles.GoogleButton} onPress={googlesignIn}>
+            <GoogleIcon />
+            <Text style={styles.GoogleButtonText}>Google</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.GithubButton}>
+            <GithubIcon />
+            <Text style={styles.GithubButtonText}>Github</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.LoginContainer}>
+          <Text style={styles.LoginText}>Already Have an Account?</Text>
+          <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+            <Text style={styles.LoginLink}>Login</Text>
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    </ScrollView>
   );
 };
 
@@ -354,6 +404,9 @@ const OpenEyeIcon = () => (
 );
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    flexGrow: 1,
+  },
   container: {
     flex: 1,
     backgroundColor: "#000",
