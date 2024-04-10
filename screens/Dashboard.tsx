@@ -17,7 +17,6 @@ import { useUser } from "../UserContext";
 import { getAuth } from "firebase/auth";
 import {
   doc,
-  updateDoc,
   setDoc,
   getDoc,
   getFirestore,
@@ -129,7 +128,6 @@ const updateUserData = async () => {
   if (user) {
     const userDataRef = doc(db, "data", user.uid);
     try {
-      // No need to check if the document exists; setDoc with merge:true will create or update as needed
       await setDoc(
         userDataRef,
         {
