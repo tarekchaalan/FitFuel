@@ -1,0 +1,7 @@
+<resources>
+  <string name="app_name">FitFuel</string>
+  <string name="expo_splash_screen_resize_mode" translatable="false">contain</string>
+  <string name="expo_splash_screen_status_bar_translucent" translatable="false">false</string>
+  <string name="server_client_id">1067533845800-1mlsehvj4s2magnatfdc1fgb6qqgl2dn.apps.googleusercontent.com
+</string>
+</resources>
