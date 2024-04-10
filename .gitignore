@@ -1,5 +1,10 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
-# Temporary
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
 
 # dependencies
 node_modules/
@@ -9,28 +14,44 @@ node_modules/
 dist/
 web-build/
 
-# Native
+# Native configs
 *.orig.*
 *.jks
 *.p8
 *.p12
 *.key
 *.mobileprovision
-
-# Metro
-.metro-health-check*
-
-# debug
-npm-debug.*
-yarn-debug.*
-yarn-error.*
-
-# macOS
-.DS_Store
 *.pem
 
-# local env files
+# Android specific ignores
+android/.gradle
+android/build
+android/app/build
+!android/app/src/main/assets/*
+!android/app/src/main/java/**
+android/gradle/wrapper/gradle-wrapper.jar
+
+# Temporary files
+*.log
+*.tmp
+*.tmp.*
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Local environment files
 .env*.local
 
-# typescript
+# IDE specific files
+.idea/
+.vscode/
+*.iml
+*.idea/
+*.vscode/
+
+# TypeScript
 *.tsbuildinfo
+
+# Metro bundler cache
+.metro/
