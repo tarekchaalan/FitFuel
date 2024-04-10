@@ -12,6 +12,11 @@ import { useFocusEffect } from "@react-navigation/native";
 import { Svg, Path } from "react-native-svg";
 import * as ImagePicker from "expo-image-picker";
 import { CameraView, Camera } from "expo-camera/next";
+import { getAuth } from "firebase/auth";
+import { doc, setDoc, arrayUnion, getFirestore } from "firebase/firestore";
+
+const db = getFirestore();
+const auth = getAuth();
 
 interface NutritionalInfo {
   calories: string;
@@ -72,6 +77,51 @@ const MacroChecker = ({ navigation }: { navigation: any }) => {
     }
   };
 
+  const captureImage = async () => {
+    // Check camera permissions and launch camera
+    let result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true, // if you want the user to edit the photo
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      // Here you can upload the image to your storage or directly save the URI in the Firestore
+      saveImageToDatabase(result.assets[0].uri);
+    }
+  };
+
+  const saveImageToDatabase = async (uri: string) => {
+    // Assume the user is logged in and you have a user id
+    const user = auth.currentUser;
+    if (user) {
+      const newScanData = {
+        image_url: uri, // If you're uploading to storage, this should be the URL from storage
+        timestamp: new Date(), // Add any additional data you might need
+        // Add placeholder or default values for other fields if necessary
+      };
+
+      const userScansRef = doc(db, "MacroFoodScan", user.uid);
+      try {
+        await setDoc(
+          userScansRef,
+          {
+            scans: arrayUnion(newScanData),
+          },
+          { merge: true }
+        );
+
+        Alert.alert("Image saved successfully");
+        // If you have a screen to display the image, navigate to it
+        // navigation.navigate('YourNextScreen', { imageInfo: newScanData });
+      } catch (error) {
+        console.error("Error saving the image scan: ", error);
+        Alert.alert("Error", "Failed to save the image");
+      }
+    }
+  };
+
   const pickImage = async () => {
     await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -110,7 +160,6 @@ const MacroChecker = ({ navigation }: { navigation: any }) => {
           },
         };
         setProductInfo(productInfo);
-        console.log("Navigating to results page" + barcode + productInfo);
         navigation.navigate("BarcodeResults", { productInfo });
       } else {
         Alert.alert("Product not found");
@@ -196,7 +245,7 @@ const MacroChecker = ({ navigation }: { navigation: any }) => {
               barcodeTypes: ["qr", "ean13"],
             }}
           ></CameraView>
-          <TouchableOpacity style={styles.captureButton} onPress={() => {}}>
+          <TouchableOpacity style={styles.captureButton} onPress={captureImage}>
             <View style={styles.captureButtonInner} />
           </TouchableOpacity>
           <Text style={styles.orText}>OR</Text>

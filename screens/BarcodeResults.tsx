@@ -121,7 +121,7 @@ const BarcodeResults = ({
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#000", // bg color for whole screen
+    backgroundColor: "#000",
   },
   scrollView: {
     flex: 1, // Ensure ScrollView takes up the whole screen

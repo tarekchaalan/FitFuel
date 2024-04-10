@@ -95,7 +95,7 @@ const MacroResult = ({ navigation }: { navigation: any }) => {
     const opacity = dragX.interpolate({
       inputRange: [-100, 0],
       outputRange: [1, 0],
-      extrapolate: "clamp", // This ensures that the opacity doesn't go below 0
+      extrapolate: "clamp",
     });
 
     return (
