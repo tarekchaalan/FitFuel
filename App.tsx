@@ -20,6 +20,7 @@ import MealPlan from "./screens/MealPlan";
 import ScanIngredients from "./screens/ScanIngredients";
 import IngredientsResult from "./screens/IngredientsResult";
 import MacroChecker from "./screens/MacroChecker";
+import BarcodeResults from "./screens/BarcodeResults";
 import MacroResult from "./screens/MacroResult";
 import Preferences from "./screens/Preferences";
 import Profile from "./screens/Profile";
@@ -72,11 +73,11 @@ function App() {
       }
     });
 
-    return unsubscribe; // Cleanup on component unmount
+    return unsubscribe;
   }, []);
 
   if (!fontsLoaded) {
-    return null; // Consider adding a loading screen here
+    return null;
   }
 
   return (
@@ -108,13 +109,13 @@ function App() {
                 component={IngredientsResult}
               />
               <Stack.Screen name="MacroChecker" component={MacroChecker} />
+              <Stack.Screen name="BarcodeResults" component={BarcodeResults} />
               <Stack.Screen name="MacroResult" component={MacroResult} />
               <Stack.Screen name="Preferences" component={Preferences} />
               <Stack.Screen name="Profile" component={Profile} />
               <Stack.Screen name="Settings" component={Settings} />
             </>
           ) : (
-            // Auth Screens
             <>
               <Stack.Screen name="Login" component={Login} />
               <Stack.Screen name="Signup" component={Signup} />
