@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import {
   StyleSheet,
   View,
@@ -10,13 +10,7 @@ import {
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { Svg, Path } from "react-native-svg";
-import * as ImagePicker from "expo-image-picker";
 import { CameraView, Camera } from "expo-camera/next";
-import { getAuth } from "firebase/auth";
-import { doc, setDoc, arrayUnion, getFirestore } from "firebase/firestore";
-
-const db = getFirestore();
-const auth = getAuth();
 
 interface NutritionalInfo {
   calories: string;
@@ -77,59 +71,6 @@ const MacroChecker = ({ navigation }: { navigation: any }) => {
     }
   };
 
-  const captureImage = async () => {
-    // Check camera permissions and launch camera
-    let result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true, // if you want the user to edit the photo
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      // Here you can upload the image to your storage or directly save the URI in the Firestore
-      saveImageToDatabase(result.assets[0].uri);
-    }
-  };
-
-  const saveImageToDatabase = async (uri: string) => {
-    // Assume the user is logged in and you have a user id
-    const user = auth.currentUser;
-    if (user) {
-      const newScanData = {
-        image_url: uri, // If you're uploading to storage, this should be the URL from storage
-        timestamp: new Date(), // Add any additional data you might need
-        // Add placeholder or default values for other fields if necessary
-      };
-
-      const userScansRef = doc(db, "MacroFoodScan", user.uid);
-      try {
-        await setDoc(
-          userScansRef,
-          {
-            scans: arrayUnion(newScanData),
-          },
-          { merge: true }
-        );
-
-        Alert.alert("Image saved successfully");
-        // If you have a screen to display the image, navigate to it
-        // navigation.navigate('YourNextScreen', { imageInfo: newScanData });
-      } catch (error) {
-        console.error("Error saving the image scan: ", error);
-        Alert.alert("Error", "Failed to save the image");
-      }
-    }
-  };
-
-  const pickImage = async () => {
-    await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 1,
-      allowsMultipleSelection: true,
-    });
-  };
-
   const handleBarCodeScanned = ({ data }: any) => {
     if (!scanned) {
       setScanned(true);
@@ -146,9 +87,15 @@ const MacroChecker = ({ navigation }: { navigation: any }) => {
       const data = await response.json();
       if (data.product) {
         const nutriments = data.product.nutriments;
+        const productName = data.product.product_name;
+        const truncatedName =
+          productName.length > 37
+            ? productName.substring(0, 37) + "..."
+            : productName;
+
         const productInfo = {
           image_url: data.product.image_front_url,
-          name: data.product.product_name,
+          name: truncatedName,
           nutritional_info: {
             calories: `${nutriments["energy-kcal_100g"]} kcal`,
             protein: `${nutriments["proteins_100g"]} g`,
@@ -192,13 +139,13 @@ const MacroChecker = ({ navigation }: { navigation: any }) => {
           <View style={styles.noteContainer}>
             <Text style={styles.noteTitle}>Instructions</Text>
             <Text style={styles.noteText}>
-              Simply take or upload images of food {"\n"}
-              (making sure most of the ingredients within it are visible)
+              Simply scan a barcode of any food item
+              {/* (making sure most of the ingredients within it are visible) */}
               {"\n"}
               {"\n"}
-              Another option is to scan the barcode if one is available.
+              {/* Another option is to scan the barcode if one is available.
               {"\n"}
-              {"\n"}
+              {"\n"} */}
               After scanning, you will be able to view the macros of your food
               in the results page.
             </Text>
@@ -236,6 +183,7 @@ const MacroChecker = ({ navigation }: { navigation: any }) => {
         </View>
         <View>
           <Text style={styles.pageHeader}>Macro Checker</Text>
+          <Text style={styles.subHeader}>Scan a food item's Barcode</Text>
         </View>
         <View style={styles.scanButton}>
           <CameraView
@@ -245,13 +193,6 @@ const MacroChecker = ({ navigation }: { navigation: any }) => {
               barcodeTypes: ["qr", "ean13"],
             }}
           ></CameraView>
-          <TouchableOpacity style={styles.captureButton} onPress={captureImage}>
-            <View style={styles.captureButtonInner} />
-          </TouchableOpacity>
-          <Text style={styles.orText}>OR</Text>
-          <TouchableOpacity style={styles.button} onPress={pickImage}>
-            <Text style={styles.textStyle}>Select Photos</Text>
-          </TouchableOpacity>
         </View>
       </SafeAreaView>
     </View>
@@ -280,8 +221,15 @@ const styles = StyleSheet.create({
     fontFamily: "SFProRounded-Heavy",
     color: "#fff",
     textAlign: "center",
-    marginBottom: 20,
+    marginBottom: 5,
   },
+  subHeader: {
+    fontSize: 16,
+    fontFamily: "SFProRounded-Light",
+    color: "#fff",
+    textAlign: "center",
+  },
+
   noteContainer: {
     marginLeft: "5%",
     marginRight: "5%",
@@ -318,12 +266,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
   },
-  textStyle: {
-    color: "black",
-    fontSize: 24,
-    fontWeight: "bold",
-    textAlign: "center",
-  },
   scanButton: {
     padding: 10,
     backgroundColor: "#000",
@@ -334,9 +276,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   camera: {
-    marginTop: "20%",
+    marginTop: "10%",
     width: "100%", // Take up the full width of the screen
-    height: "95%",
+    height: "100%",
     marginBottom: 30,
   },
   captureButton: {
