@@ -88,7 +88,9 @@ const BarcodeResults = ({
                         {key.charAt(0).toUpperCase() + key.slice(1)}:
                       </Text>
                       <Text style={styles.nutrientText}>
-                        {value !== undefined ? value : "0"}
+                        {value && !isNaN(parseFloat(value))
+                          ? parseFloat(value).toFixed(2)
+                          : "0.00"}
                       </Text>
                     </View>
                   )
