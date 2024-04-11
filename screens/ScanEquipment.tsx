@@ -7,13 +7,19 @@ import {
   SafeAreaView,
   StatusBar,
   Alert,
-  Image,
+  Animated,
 } from "react-native";
 import { Svg, Path } from "react-native-svg";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../firebase";
 import * as ImagePicker from "expo-image-picker";
 import { Camera, requestCameraPermissionsAsync, CameraType } from "expo-camera";
+import { getAuth } from "firebase/auth";
+import { doc, setDoc, getFirestore } from "firebase/firestore";
+import axios from "axios";
+
+const db = getFirestore();
+const auth = getAuth();
 
 const BackIcon = () => (
   <Svg height="28" width="28" viewBox="0 0 456 600">
@@ -38,7 +44,9 @@ const ScanEquipment = ({ navigation }: { navigation: any }) => {
     boolean | null
   >(null);
   const [image, setImage] = useState<string | null>(null);
-  const cameraRef = useRef<Camera>(null); // Use useRef to keep a reference to the camera
+  const cameraRef = useRef<Camera>(null);
+  const [snapEffectOpacity] = useState(new Animated.Value(0));
+  const overlayRef = useRef<any>(null);
 
   const handleCameraLaunch = async () => {
     const { status } = await requestCameraPermissionsAsync();
@@ -52,31 +60,162 @@ const ScanEquipment = ({ navigation }: { navigation: any }) => {
     }
   };
 
-  const pickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
-    }
-  };
-
-  const uploadImage = async (uri: string, userId: string) => {
+  const uploadGymEquipmentImage = async (uri: string, userId: string) => {
     const response = await fetch(uri);
     const blob = await response.blob();
-    const storageRef = ref(storage, `GymEquipment/${userId}`);
+    const storageRef = ref(
+      storage,
+      `GymEquipment/${userId}/${new Date().toISOString()}`
+    ); // Using timestamp for unique file names
     await uploadBytes(storageRef, blob);
     const url = await getDownloadURL(storageRef);
     return url;
   };
 
-  const takePicture = async () => {
+  const detectAndUploadEquipment = async (imageUrl: string, userId: string) => {
+    try {
+      // List of API endpoints you want to call
+      const apiEndpoints = [
+        "https://detect.roboflow.com/gym-equipment-object-detection/1",
+        "https://outline.roboflow.com/gym-equipment-segmentation/1",
+        "https://detect.roboflow.com/healnion-f4l32/1",
+        "https://detect.roboflow.com/yolov5-gpr7k/1",
+        "https://detect.roboflow.com/equipment-recognition/2",
+      ];
+
+      // Make parallel requests to all endpoints
+      const apiRequests = apiEndpoints.map((endpoint) =>
+        axios
+          .post(endpoint, null, {
+            params: {
+              api_key: "3iODpfE9UZifrPc4qDUi", // Replace with your actual API key
+              image: imageUrl,
+            },
+          })
+          .then((response) => ({
+            source: endpoint,
+            predictions: response.data.predictions,
+          }))
+      );
+
+      // Wait for all requests to complete
+      const responses = await Promise.all(apiRequests);
+
+      // Combine all predictions from all responses and keep track of their source URLs
+      let allPredictions: any = [];
+      responses.forEach(({ source, predictions }) => {
+        allPredictions = allPredictions.concat(
+          predictions.map((prediction: any) => ({
+            ...prediction,
+            source, // Append the source URL to each prediction
+          }))
+        );
+      });
+
+      // Check if the combined predictions array is empty
+      if (allPredictions.length === 0) {
+        Alert.alert("No equipment detected. Please try another image.");
+        console.log("No equipment detected in the image.");
+        return;
+      }
+
+      // Find the prediction with the highest confidence across all responses
+      const highestConfidencePrediction = allPredictions.reduce(
+        (prev: any, current: any) => {
+          return prev.confidence > current.confidence ? prev : current;
+        }
+      );
+
+      const confidencePercentage =
+        Math.round(highestConfidencePrediction.confidence * 100 * 100) / 100;
+
+      // Log the source URL of the highest confidence prediction
+      console.log(
+        `Highest confidence prediction came from: ${highestConfidencePrediction.source}`
+      );
+
+      // Adjust class if necessary
+      if (highestConfidencePrediction.class === "Equipments") {
+        highestConfidencePrediction.class = "Treadmill";
+      }
+
+      // Proceed with saving only the highest confidence prediction
+      const userScansRef = doc(db, "PrivateGymEquipment", userId);
+      await setDoc(
+        userScansRef,
+        { data: { ...highestConfidencePrediction, imageUrl } },
+        { merge: true }
+      );
+
+      console.log(
+        "Highest confidence equipment detected and saved:",
+        highestConfidencePrediction
+      );
+      Alert.alert(
+        "Equipment Detected",
+        `We detected: ${highestConfidencePrediction.class}'
+        'with a confidence of ${confidencePercentage}%`
+      );
+    } catch (error) {
+      console.error("Error detecting equipment or saving to Firestore:", error);
+      Alert.alert("Error", "There was a problem with the image processing.");
+    }
+  };
+
+  const takePictureAndUpload = async () => {
+    // Ensure the overlay is active before starting the animation
+    if (overlayRef.current) {
+      overlayRef.current.setNativeProps({ pointerEvents: "auto" });
+    }
+
+    Animated.sequence([
+      Animated.timing(snapEffectOpacity, {
+        toValue: 1,
+        duration: 100, // Duration of the fade in
+        useNativeDriver: true,
+      }),
+      Animated.timing(snapEffectOpacity, {
+        toValue: 0,
+        duration: 100, // Duration of the fade out
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      if (overlayRef.current) {
+        overlayRef.current.setNativeProps({ pointerEvents: "none" });
+      }
+    });
+    console.log("Starting picture capture process...");
+    setImage(null);
+    const user = auth.currentUser;
+    if (!user) {
+      console.error("No user logged in");
+      Alert.alert(
+        "User Error",
+        "You must be logged in to perform this action."
+      );
+      return;
+    }
+
     if (cameraRef.current) {
-      const data = await cameraRef.current.takePictureAsync();
-      setImage(data.uri);
+      console.log("Taking picture...");
+      try {
+        const photo = await cameraRef.current.takePictureAsync();
+        console.log("Picture taken:", photo.uri);
+        setImage(photo.uri);
+
+        console.log("Uploading image...");
+        const imageUrl = await uploadGymEquipmentImage(photo.uri, user.uid);
+        console.log("Image uploaded, URL:", imageUrl);
+
+        console.log("Detecting equipment...");
+        await detectAndUploadEquipment(imageUrl, user.uid);
+        console.log("Equipment detection and upload complete.");
+      } catch (error) {
+        console.error("Error during the capture or upload process:", error);
+        Alert.alert("Error", "There was a problem with the image processing.");
+      }
+    } else {
+      console.log("Camera ref is not available.");
     }
   };
 
@@ -102,12 +241,14 @@ const ScanEquipment = ({ navigation }: { navigation: any }) => {
           <View style={styles.noteContainer}>
             <Text style={styles.noteTitle}>Instructions</Text>
             <Text style={styles.noteText}>
-              Simply take or upload images of the equipment in your gym, this
+              Simply take images of the equipment in your gym, this
               will allow us to come up with customized workout plans.
               {"\n"}
               {"\n"}
               You should only proceed to the next page if you are working out at
               a <Text style={styles.noteTextDecorated}>PRIVATE</Text> gym.
+              {"\n"}
+              You are not required to scan cardio equipment.
               {"\n"}
               {"\n"}
               If you have already scanned your equipment before, go back,
@@ -156,21 +297,28 @@ const ScanEquipment = ({ navigation }: { navigation: any }) => {
         </View>
         <View style={styles.scanButton}>
           <Camera
-            ref={cameraRef} // Assign the ref here
+            ref={cameraRef}
             style={styles.camera}
             type={CameraType.back}
             ratio={"4:3"}
           />
           <TouchableOpacity
             style={styles.captureButton}
-            onPress={takePicture} // Call takePicture here
+            onPress={takePictureAndUpload}
           >
             <View style={styles.captureButtonInner} />
           </TouchableOpacity>
-          <Text style={styles.orText}>OR</Text>
-          <TouchableOpacity style={styles.button} onPress={pickImage}>
-            <Text style={styles.textStyle}>Select Photos</Text>
-          </TouchableOpacity>
+          {/* Snap Effect Overlay */}
+          <Animated.View
+            ref={overlayRef}
+            style={[
+              styles.overlay,
+              {
+                opacity: snapEffectOpacity,
+              },
+            ]}
+            pointerEvents="none" // Initially, don't intercept touches
+          />
         </View>
       </SafeAreaView>
     </View>
@@ -257,14 +405,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   camera: {
-    marginTop: "20%",
+    marginTop: "10%",
     width: "100%",
-    height: "95%",
+    height: "100%",
     marginBottom: 20,
   },
   captureButton: {
     position: "absolute",
-    bottom: 70,
+    bottom: 0,
     alignSelf: "center",
     width: 60,
     height: 60,
@@ -279,20 +427,9 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     backgroundColor: "#aaa",
   },
-  button: {
-    borderRadius: 20,
-    width: "50%",
-    padding: 10,
-    elevation: 2,
-    backgroundColor: "#fff",
-    marginBottom: 10,
-    marginTop: 20,
-  },
-  orText: {
-    color: "#fff",
-    fontSize: 28,
-    fontFamily: "SFProRounded-Heavy",
-    textAlign: "center",
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "white",
   },
 });
 
