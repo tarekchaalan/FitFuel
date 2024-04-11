@@ -31,7 +31,6 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#000000"
       },
-      "permissions": ["android.permission.RECORD_AUDIO"],
       "package": "com.anonymous.FitFuel"
     },
     "web": {
