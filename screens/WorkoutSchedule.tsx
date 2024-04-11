@@ -25,7 +25,7 @@ const WorkoutSchedule = ({navigation}: {navigation: any}) => {
           </TouchableOpacity>
         </View>
         <View>
-          <Text style={styles.pageHeader}>Workout Schedule</Text>
+          <Text style={styles.pageHeader}>Workout Schedule (TODO)</Text>
         </View>
       </SafeAreaView>
     </View>

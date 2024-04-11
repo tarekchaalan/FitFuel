@@ -39,6 +39,9 @@ const Settings = ({ navigation }: { navigation: any }) => {
           </TouchableOpacity>
         </View>
         <ScrollView contentContainerStyle={styles.scrollContainer}>
+          <View>
+            <Text style={styles.pageHeader}>Settings (TODO)</Text>
+          </View>
           <TouchableOpacity
             style={styles.signOutButton}
             onPress={handleSignOut}
@@ -75,6 +78,12 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     marginLeft: "5%",
     marginTop: "2%",
+  },
+  pageHeader: {
+    fontSize: 20,
+    fontFamily: "SFProRounded-Heavy",
+    color: "#fff",
+    alignSelf: "center",
   },
   signOutButton: {
     height: 50,

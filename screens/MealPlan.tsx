@@ -26,7 +26,7 @@ const MealPlan = ({ navigation }: { navigation: any }) => {
           </TouchableOpacity>
         </View>
         <View>
-          <Text style={styles.pageHeader}>Meal Plan</Text>
+          <Text style={styles.pageHeader}>Meal Plan (TODO)</Text>
         </View>
       </SafeAreaView>
     </View>

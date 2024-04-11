@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
-const EquipmentResult = ({navigation}: {navigation: any}) => {
+const EquipmentResult = ({ navigation }: { navigation: any }) => {
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
@@ -20,12 +20,13 @@ const EquipmentResult = ({navigation}: {navigation: any}) => {
         <View style={styles.BackContainer}>
           <TouchableOpacity
             style={styles.BackIcon}
-            onPress={() => navigation.navigate('ScanEquipment')}>
+            onPress={() => navigation.navigate("ScanEquipment")}
+          >
             <BackIcon />
           </TouchableOpacity>
         </View>
         <View>
-          <Text style={styles.pageHeader}>Equipment Scan History</Text>
+          <Text style={styles.pageHeader}>Equipment Scan History (TODO)</Text>
         </View>
       </SafeAreaView>
     </View>

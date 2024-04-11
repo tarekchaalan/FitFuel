@@ -75,7 +75,7 @@ const ScanIngredients = ({ navigation }: { navigation: any }) => {
             </TouchableOpacity>
           </View>
           <View style={styles.noteContainer}>
-            <Text style={styles.noteTitle}>Instructions</Text>
+            <Text style={styles.noteTitle}>Instructions (TODO)</Text>
             <Text style={styles.noteText}>
               To tailor-make your meal plans, simply snap or upload pictures of
               the items in your{" "}

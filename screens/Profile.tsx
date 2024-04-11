@@ -58,6 +58,9 @@ const Profile = ({ navigation }: { navigation: any }) => {
             <Text style={styles.nameText}>{fullName}</Text>
             <Text style={styles.usernameText}>@{username}</Text>
           </View>
+          <View>
+            <Text style={styles.DELETE}>TODO</Text>
+          </View>
         </ScrollView>
 
         <View style={styles.navigation}>
@@ -189,6 +192,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: "SFProText-Light",
     color: "#fff",
+  },
+  DELETE: {
+    fontSize: 50,
+    fontFamily: "SFProRounded-Heavy",
+    color: "#fff",
+    alignSelf: "center",
   },
   navigation: {
     flexDirection: "row",
