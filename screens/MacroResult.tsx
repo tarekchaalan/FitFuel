@@ -37,6 +37,7 @@ interface ProductScan {
   image_url: string;
   name: string;
   nutritional_info: NutritionalInfo;
+  nutriscore_grade: string;
 }
 
 const fetchScans = async (): Promise<ProductScan[]> => {
@@ -58,6 +59,7 @@ const fetchScans = async (): Promise<ProductScan[]> => {
               image_url: scan.image_url,
               name: scan.name,
               nutritional_info: scan.nutritional_info,
+              nutriscore_grade: scan.nutriscore_grade,
             });
           });
         }
@@ -107,6 +109,29 @@ const MacroResult = ({ navigation }: { navigation: any }) => {
     );
   };
 
+  const getNutriScoreColor = (grade: string) => {
+    console.log("Grade:", grade);
+    if (!grade) {
+      console.log("Grade is undefined");
+      return "#dcdcdc"; // Default color if grade is undefined
+    }
+    const colors: { [grade: string]: string } = {
+      a: "#038141", // Green
+      b: "#85BB2F", // Light Green
+      c: "#FECB02", // Yellow
+      d: "#EE8100", // Orange
+      e: "#E63E11", // Red
+    };
+    const color = colors[grade.toLowerCase()];
+    if (!color) {
+      console.log("Color not found for grade:", grade);
+      return "#dcdcdc"; // Default color if grade is not found
+    }
+    return color;
+  };
+
+  console.log(scans);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" />
@@ -120,7 +145,7 @@ const MacroResult = ({ navigation }: { navigation: any }) => {
       </View>
       <Text style={styles.pageHeader}>Macro Results</Text>
       <ScrollView>
-        {scans.map((scan: any, index: any) => (
+        {scans.map((scan, index) => (
           <Swipeable
             key={index}
             renderRightActions={(progress, dragX) =>
@@ -129,18 +154,36 @@ const MacroResult = ({ navigation }: { navigation: any }) => {
             friction={1}
           >
             <TouchableOpacity
-              key={index}
               style={styles.scanRow}
               onPress={() =>
                 navigation.navigate("BarcodeResults", { productInfo: scan })
               }
             >
               <Image
-                source={{ uri: scan.image_url }}
+                source={
+                  scan.image_url !== "PLACEHOLDER"
+                    ? { uri: scan.image_url }
+                    : require("../assets/images/placeholder.png")
+                }
                 style={styles.scanImage}
-                resizeMode="cover"
+                resizeMode="contain"
               />
-              <Text style={styles.scanText}>{scan.name}</Text>
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <View
+                  style={{
+                    paddingHorizontal: 6,
+                    paddingVertical: 2,
+                    borderRadius: 3,
+                    marginRight: 8,
+                    backgroundColor: getNutriScoreColor(scan.nutriscore_grade),
+                  }}
+                >
+                  <Text style={{ color: "#000", fontWeight: "bold" }}>
+                    {scan.nutriscore_grade.toUpperCase()}
+                  </Text>
+                </View>
+                <Text style={styles.scanText}>{scan.name}</Text>
+              </View>
             </TouchableOpacity>
           </Swipeable>
         ))}
@@ -197,7 +240,7 @@ const styles = StyleSheet.create({
     height: 150,
   },
   scanImage: {
-    height: 100,
+    height: 135,
     width: 100,
     marginRight: 10,
   },

@@ -59,24 +59,42 @@ const ScanEquipment = ({ navigation }: { navigation: any }) => {
     }
   };
 
-  const uploadGymEquipmentImage = async (uri: string, userId: string) => {
-    const response = await fetch(uri);
-    const blob = await response.blob();
-    const storageRef = ref(
-      storage,
-      `GymEquipment/${userId}/${new Date().toISOString()}`
-    ); // Using timestamp for unique file names
-    await uploadBytes(storageRef, blob);
-    const url = await getDownloadURL(storageRef);
-    return url;
+  const uploadGymEquipmentImage = async (uri: any, userId: any) => {
+    try {
+      console.log("Fetching image from URI");
+      const response = await fetch(uri);
+      console.log("Converting to blob");
+      const blob = await response.blob();
+      console.log("Blob size:", blob.size);
+      console.log("Creating storage reference");
+      const storageRef = ref(
+        storage,
+        `GymEquipment/${userId}/${new Date().toISOString()}`
+      );
+      console.log("Storage ref:", storageRef.fullPath);
+      console.log("Uploading bytes");
+      await uploadBytes(storageRef, blob);
+      console.log("Getting download URL");
+      const url = await getDownloadURL(storageRef);
+      console.log("Upload complete", url);
+      return url;
+    } catch (error) {
+      console.error("Failed to upload image", error);
+      Alert.alert("Upload Error", "Failed to upload image.");
+      throw error; // Rethrow or handle as needed
+    }
   };
 
   const detectAndUploadEquipment = async (imageUrl: string, userId: string) => {
     try {
       // List of API endpoints you want to call
       const apiEndpoints = [
-        "https://detect.roboflow.com/all-gym-equipment/1",
+        "https://detect.roboflow.com/all-gym-equipment/2", // My custom model
         "https://detect.roboflow.com/gym-equipment-object-detection/1",
+        // "https://outline.roboflow.com/gym-equipment-segmentation/1",
+        // "https://detect.roboflow.com/healnion-f4l32/1",
+        // "https://detect.roboflow.com/yolov5-gpr7k/1",
+        // "https://detect.roboflow.com/equipment-recognition/2",
       ];
 
       // Make parallel requests to all endpoints
@@ -201,26 +219,41 @@ const ScanEquipment = ({ navigation }: { navigation: any }) => {
       return;
     }
 
-    if (cameraRef.current) {
+    if (!cameraRef.current || !auth.currentUser) {
+      Alert.alert("Error", "Camera not ready or user not authenticated");
+      return;
+    }
+
+    try {
       console.log("Taking picture...");
-      try {
-        const photo = await cameraRef.current.takePictureAsync();
-        console.log("Picture taken:", photo.uri);
-        setImage(photo.uri);
+      const photo = await cameraRef.current.takePictureAsync();
+      console.log("Picture taken:", photo.uri);
 
-        console.log("Uploading image...");
-        const imageUrl = await uploadGymEquipmentImage(photo.uri, user.uid);
-        console.log("Image uploaded, URL:", imageUrl);
+      setImage(photo.uri);
+      console.log("Starting upload...");
+      const imageUrl = await uploadGymEquipmentImage(
+        photo.uri,
+        auth.currentUser.uid
+      );
+      console.log("Image uploaded, URL:", imageUrl);
 
-        console.log("Detecting equipment...");
-        await detectAndUploadEquipment(imageUrl, user.uid);
-        console.log("Equipment detection and upload complete.");
-      } catch (error) {
-        console.error("Error during the capture or upload process:", error);
-        Alert.alert("Error", "There was a problem with the image processing.");
+      console.log("Detecting equipment...");
+      await detectAndUploadEquipment(imageUrl, auth.currentUser.uid);
+      console.log("Equipment detection and upload complete.");
+    } catch (error) {
+      let errorMessage = "Failed to do something exceptional";
+      if (error instanceof Error) {
+        errorMessage = error.message;
       }
-    } else {
-      console.log("Camera ref is not available.");
+
+      console.error(
+        "Error during the capture or upload process:",
+        errorMessage
+      );
+      Alert.alert(
+        "Capture or Upload Error",
+        errorMessage || "An error occurred"
+      );
     }
   };
 

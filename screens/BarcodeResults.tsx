@@ -75,8 +75,13 @@ const BarcodeResults = ({
           {productInfo && (
             <>
               <Image
-                source={{ uri: productInfo.image_url }}
+                source={
+                  productInfo.image_url !== "PLACEHOLDER"
+                    ? { uri: productInfo.image_url }
+                    : require("../assets/images/placeholder.png")
+                }
                 style={styles.productImage}
+                resizeMode="contain"
               />
               <Text style={styles.productName}>{productInfo.name}</Text>
               <View style={styles.nutritionalInfo}>

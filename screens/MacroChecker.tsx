@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback } from "react";
 import {
   StyleSheet,
   View,
@@ -10,7 +10,13 @@ import {
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { Svg, Path } from "react-native-svg";
+import * as ImagePicker from "expo-image-picker";
 import { CameraView, Camera } from "expo-camera/next";
+import { getAuth } from "firebase/auth";
+import { doc, setDoc, arrayUnion, getFirestore } from "firebase/firestore";
+
+const db = getFirestore();
+const auth = getAuth();
 
 interface NutritionalInfo {
   calories: string;
@@ -79,40 +85,51 @@ const MacroChecker = ({ navigation }: { navigation: any }) => {
     }
   };
 
-  const fetchProductInfo = async (barcode: string) => {
+  const fetchProductInfo = async (barcode: String) => {
     try {
       const response = await fetch(
         `https://world.openfoodfacts.org/api/v0/product/${barcode}.json`
       );
       const data = await response.json();
+      console.log(data);
       if (data.product) {
-        const nutriments = data.product.nutriments;
-        const productName = data.product.product_name;
-        const truncatedName =
-          productName.length > 37
-            ? productName.substring(0, 37) + "..."
-            : productName;
-
+        const nutriments = data.product.nutriments || {};
         const productInfo = {
-          image_url: data.product.image_front_url,
-          name: truncatedName,
+          image_url: data.product.image_front_url || "PLACEHOLDER",
+          name: data.product.product_name || "Name not Found",
           nutritional_info: {
-            calories: `${nutriments["energy-kcal_100g"]} kcal`,
-            protein: `${nutriments["proteins_100g"]} g`,
-            fat: `${nutriments["fat_100g"]} g`,
-            saturatedFat: `${nutriments["saturated-fat_100g"]} g`,
-            sodium: `${nutriments["sodium_100g"]} g`,
-            carbohydrates: `${nutriments["carbohydrates_100g"]} g`,
-            fiber: `${nutriments["fiber_100g"]} g`,
+            calories: `${nutriments["energy-kcal_100g"] || "0.00"} kcal`,
+            protein: `${nutriments["proteins_100g"] || "0.00"} g`,
+            fat: `${nutriments["fat_100g"] || "0.00"} g`,
+            saturatedFat: `${nutriments["saturated-fat_100g"] || "0.00"} g`,
+            sodium: `${nutriments["sodium_100g"] || "0.00"} g`,
+            carbohydrates: `${nutriments["carbohydrates_100g"] || "0.00"} g`,
+            fiber: `${nutriments["fiber_100g"] || "0.00"} g`,
           },
+          nutriscore_grade: data.product.nutriscore_grade || "Unknown",
         };
+        console.log(productInfo.image_url);
+        console.log(productInfo.name);
+        console.log(productInfo.nutritional_info);
         setProductInfo(productInfo);
         navigation.navigate("BarcodeResults", { productInfo });
       } else {
-        Alert.alert("Product not found");
+        Alert.alert(
+          "Product Not Found", // Title of the alert
+          "Please try scanning again or check the product barcode.", // Message in the alert
+          [
+            {
+              text: "OK",
+              onPress: () => {
+                console.log("OK Pressed");
+                setScanned(false); // Resetting the scanned state when user presses "OK"
+              },
+            },
+          ]
+        );
       }
     } catch (error) {
-      console.error(error);
+      console.error("Failed to fetch product info: ", error);
       Alert.alert("Failed to fetch product info");
     }
   };
@@ -183,14 +200,13 @@ const MacroChecker = ({ navigation }: { navigation: any }) => {
         </View>
         <View>
           <Text style={styles.pageHeader}>Macro Checker</Text>
-          <Text style={styles.subHeader}>Scan a food item's Barcode</Text>
         </View>
         <View style={styles.scanButton}>
           <CameraView
             style={styles.camera}
             onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
             barcodeScannerSettings={{
-              barcodeTypes: ["qr", "ean13"],
+              barcodeTypes: ["ean13"],
             }}
           ></CameraView>
         </View>
@@ -221,15 +237,8 @@ const styles = StyleSheet.create({
     fontFamily: "SFProRounded-Heavy",
     color: "#fff",
     textAlign: "center",
-    marginBottom: 5,
+    marginBottom: 20,
   },
-  subHeader: {
-    fontSize: 16,
-    fontFamily: "SFProRounded-Light",
-    color: "#fff",
-    textAlign: "center",
-  },
-
   noteContainer: {
     marginLeft: "5%",
     marginRight: "5%",
@@ -276,42 +285,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   camera: {
-    marginTop: "10%",
-    width: "100%", // Take up the full width of the screen
-    height: "100%",
+    marginTop: "20%",
+    width: "100%",
+    height: "95%",
     marginBottom: 30,
-  },
-  captureButton: {
-    position: "absolute",
-    bottom: 70,
-    alignSelf: "center",
-    width: 60,
-    height: 60,
-    borderRadius: 35,
-    backgroundColor: "#fff",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  captureButtonInner: {
-    width: 55,
-    height: 55,
-    borderRadius: 30,
-    backgroundColor: "#aaa",
-  },
-  button: {
-    borderRadius: 20,
-    width: "40%",
-    padding: 10,
-    elevation: 2,
-    backgroundColor: "#fff",
-    marginBottom: 10,
-    marginTop: 20,
-  },
-  orText: {
-    color: "#fff",
-    fontSize: 28,
-    fontFamily: "SFProRounded-Heavy",
-    textAlign: "center",
   },
 });
 
