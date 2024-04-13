@@ -12,7 +12,6 @@ import {
 import { Svg, Path } from "react-native-svg";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../firebase";
-import * as ImagePicker from "expo-image-picker";
 import { Camera, requestCameraPermissionsAsync, CameraType } from "expo-camera";
 import { getAuth } from "firebase/auth";
 import { doc, setDoc, getFirestore } from "firebase/firestore";
@@ -76,11 +75,8 @@ const ScanEquipment = ({ navigation }: { navigation: any }) => {
     try {
       // List of API endpoints you want to call
       const apiEndpoints = [
+        "https://detect.roboflow.com/all-gym-equipment/1",
         "https://detect.roboflow.com/gym-equipment-object-detection/1",
-        "https://outline.roboflow.com/gym-equipment-segmentation/1",
-        "https://detect.roboflow.com/healnion-f4l32/1",
-        "https://detect.roboflow.com/yolov5-gpr7k/1",
-        "https://detect.roboflow.com/equipment-recognition/2",
       ];
 
       // Make parallel requests to all endpoints
@@ -88,7 +84,7 @@ const ScanEquipment = ({ navigation }: { navigation: any }) => {
         axios
           .post(endpoint, null, {
             params: {
-              api_key: "3iODpfE9UZifrPc4qDUi", // Replace with your actual API key
+              api_key: "3iODpfE9UZifrPc4qDUi",
               image: imageUrl,
             },
           })
@@ -107,15 +103,14 @@ const ScanEquipment = ({ navigation }: { navigation: any }) => {
         allPredictions = allPredictions.concat(
           predictions.map((prediction: any) => ({
             ...prediction,
-            source, // Append the source URL to each prediction
+            source,
           }))
         );
       });
 
       // Check if the combined predictions array is empty
       if (allPredictions.length === 0) {
-        Alert.alert("No equipment detected. Please try another image.");
-        console.log("No equipment detected in the image.");
+        Alert.alert("No equipment detected", "Please try another image.");
         return;
       }
 
@@ -129,36 +124,46 @@ const ScanEquipment = ({ navigation }: { navigation: any }) => {
       const confidencePercentage =
         Math.round(highestConfidencePrediction.confidence * 100 * 100) / 100;
 
-      // Log the source URL of the highest confidence prediction
       console.log(
         `Highest confidence prediction came from: ${highestConfidencePrediction.source}`
       );
 
-      // Adjust class if necessary
-      if (highestConfidencePrediction.class === "Equipments") {
-        highestConfidencePrediction.class = "Treadmill";
-      }
-
-      // Proceed with saving only the highest confidence prediction
-      const userScansRef = doc(db, "PrivateGymEquipment", userId);
-      await setDoc(
-        userScansRef,
-        { data: { ...highestConfidencePrediction, imageUrl } },
-        { merge: true }
-      );
-
-      console.log(
-        "Highest confidence equipment detected and saved:",
-        highestConfidencePrediction
-      );
+      // Prepare to show the alert with options
       Alert.alert(
         "Equipment Detected",
-        `We detected: ${highestConfidencePrediction.class}'
-        'with a confidence of ${confidencePercentage}%`
+        `We detected: ${highestConfidencePrediction.class} with a confidence of ${confidencePercentage}%. Do you want to save this detection?`,
+        [
+          {
+            text: "Save",
+            onPress: () =>
+              saveDetection(highestConfidencePrediction, userId, imageUrl),
+          },
+          {
+            text: "Cancel",
+            onPress: () => console.log("Detection not saved."),
+          },
+        ],
+        { cancelable: false }
       );
     } catch (error) {
       console.error("Error detecting equipment or saving to Firestore:", error);
       Alert.alert("Error", "There was a problem with the image processing.");
+    }
+  };
+
+  const saveDetection = async (prediction: any, userId: any, imageUrl: any) => {
+    try {
+      const userScansRef = doc(db, "PrivateGymEquipment", userId);
+      await setDoc(
+        userScansRef,
+        { data: { ...prediction, imageUrl } },
+        { merge: true }
+      );
+      console.log("Detection saved successfully.");
+      Alert.alert("Success", "Detection has been saved to the database.");
+    } catch (error) {
+      console.error("Error saving detection to Firestore:", error);
+      Alert.alert("Save Error", "Failed to save detection.");
     }
   };
 
@@ -241,14 +246,14 @@ const ScanEquipment = ({ navigation }: { navigation: any }) => {
           <View style={styles.noteContainer}>
             <Text style={styles.noteTitle}>Instructions</Text>
             <Text style={styles.noteText}>
-              Simply take images of the equipment in your gym, this
-              will allow us to come up with customized workout plans.
+              Simply take images of the equipment in your gym, this will allow
+              us to come up with customized workout plans.
               {"\n"}
               {"\n"}
               You should only proceed to the next page if you are working out at
               a <Text style={styles.noteTextDecorated}>PRIVATE</Text> gym.
               {"\n"}
-              You are not required to scan cardio equipment.
+              Please scan one machine at a time.
               {"\n"}
               {"\n"}
               If you have already scanned your equipment before, go back,
