@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   Image,
   StyleSheet,
-  ScrollView,
   KeyboardAvoidingView,
   Animated,
   Alert,
@@ -203,79 +202,78 @@ const Signup = ({ navigation }: { navigation: any }) => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <KeyboardAvoidingView style={styles.container} behavior="padding">
-        <View style={styles.logoContainer}>
-          <Text style={styles.title}>Join Us!</Text>
-          <TouchableOpacity onPress={pickImage} style={styles.pfpInput}>
-            {profileImage ? (
-              <Image
-                source={{ uri: profileImage }} // Use uri instead of assets
-                style={styles.profileImage}
-                resizeMode="cover"
-              />
-            ) : (
-              <UploadPFPIcon />
-            )}
+    <KeyboardAvoidingView style={styles.container} behavior="padding">
+      <View style={styles.logoContainer}>
+        <Text style={styles.title}>Join Us!</Text>
+        <TouchableOpacity onPress={pickImage} style={styles.pfpInput}>
+          {profileImage ? (
+            <Image
+              source={{ uri: profileImage }} // Use uri instead of assets
+              style={styles.profileImage}
+              resizeMode="cover"
+            />
+          ) : (
+            <UploadPFPIcon />
+          )}
+        </TouchableOpacity>
+      </View>
+      <View style={styles.inputContainer}>
+        <TextInput
+          placeholder="Full Name"
+          value={fullName}
+          onChangeText={(text) => setFullName(text)}
+          placeholderTextColor="#aaaaaa"
+          style={styles.input}
+        />
+        <TextInput
+          placeholder="Username"
+          value={username}
+          onChangeText={(text) => setUsername(text)}
+          placeholderTextColor="#aaaaaa"
+          style={styles.input}
+        />
+        <TextInput
+          placeholder="Email"
+          value={email}
+          onChangeText={(text) => setEmail(text)}
+          placeholderTextColor="#aaaaaa"
+          style={styles.input}
+        />
+        <View style={styles.CountryContainer}>
+          {renderCallingCode()}
+          <TextInput
+            placeholder="Phone Number"
+            value={formattedPhoneNumber}
+            onChangeText={handlePhoneNumberChange} // Correctly hook up the handler here
+            placeholderTextColor="#aaaaaa"
+            keyboardType="phone-pad"
+            style={styles.Numberinput}
+          />
+        </View>
+        <View style={styles.inputFieldContainer}>
+          <TextInput
+            placeholder="Password"
+            value={password}
+            onChangeText={(text) => setPassword(text)}
+            placeholderTextColor="#aaaaaa"
+            secureTextEntry={!passwordVisible}
+            key={passwordVisible ? "hidden" : "visible"}
+            style={styles.input}
+          />
+          <TouchableOpacity
+            onPress={togglePasswordVisibility}
+            style={styles.eyeIcon}
+          >
+            <Animated.View style={animatedStyle}>
+              {passwordVisible ? <OpenEyeIcon /> : <ClosedEyeIcon />}
+            </Animated.View>
           </TouchableOpacity>
         </View>
-        <View style={styles.inputContainer}>
-          <TextInput
-            placeholder="Full Name"
-            value={fullName}
-            onChangeText={(text) => setFullName(text)}
-            placeholderTextColor="#aaaaaa"
-            style={styles.input}
-          />
-          <TextInput
-            placeholder="Username"
-            value={username}
-            onChangeText={(text) => setUsername(text)}
-            placeholderTextColor="#aaaaaa"
-            style={styles.input}
-          />
-          <TextInput
-            placeholder="Email"
-            value={email}
-            onChangeText={(text) => setEmail(text)}
-            placeholderTextColor="#aaaaaa"
-            style={styles.input}
-          />
-          <View style={styles.CountryContainer}>
-            {renderCallingCode()}
-            <TextInput
-              placeholder="Phone Number"
-              value={formattedPhoneNumber}
-              onChangeText={handlePhoneNumberChange} // Correctly hook up the handler here
-              placeholderTextColor="#aaaaaa"
-              keyboardType="phone-pad"
-              style={styles.Numberinput}
-            />
-          </View>
-          <View style={styles.inputFieldContainer}>
-            <TextInput
-              placeholder="Password"
-              value={password}
-              onChangeText={(text) => setPassword(text)}
-              placeholderTextColor="#aaaaaa"
-              secureTextEntry={!passwordVisible}
-              key={passwordVisible ? "hidden" : "visible"}
-              style={styles.input}
-            />
-            <TouchableOpacity
-              onPress={togglePasswordVisibility}
-              style={styles.eyeIcon}
-            >
-              <Animated.View style={animatedStyle}>
-                {passwordVisible ? <OpenEyeIcon /> : <ClosedEyeIcon />}
-              </Animated.View>
-            </TouchableOpacity>
-          </View>
-        </View>
-        <TouchableOpacity onPress={handleSignUp} style={styles.SignUpButton}>
-          <Text style={styles.SignUpButtonText}>Sign Up</Text>
-        </TouchableOpacity>
-        {/* <View style={styles.orContainer}>
+      </View>
+      <TouchableOpacity onPress={handleSignUp} style={styles.SignUpButton}>
+        <Text style={styles.SignUpButtonText}>Sign Up</Text>
+      </TouchableOpacity>
+      {/* <View style={styles.orContainer}>
           <View style={styles.line} />
           <Text style={styles.orText}>or</Text>
           <View style={styles.line} />
@@ -293,14 +291,13 @@ const Signup = ({ navigation }: { navigation: any }) => {
             <Text style={styles.GithubButtonText}>Github</Text>
           </TouchableOpacity>
         </View> */}
-        <View style={styles.LoginContainer}>
-          <Text style={styles.LoginText}>Already Have an Account?</Text>
-          <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-            <Text style={styles.LoginLink}>Login</Text>
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
-    </ScrollView>
+      <View style={styles.LoginContainer}>
+        <Text style={styles.LoginText}>Already Have an Account?</Text>
+        <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+          <Text style={styles.LoginLink}>Login</Text>
+        </TouchableOpacity>
+      </View>
+    </KeyboardAvoidingView>
   );
 };
 
