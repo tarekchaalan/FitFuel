@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../firebase"; // Make sure the path matches your project structure
-import Svg, { Path } from "react-native-svg";
+import { BackIcon } from "../svgs";
 
 const screenHeight = Dimensions.get("window").height;
 
@@ -74,15 +74,6 @@ const Forgot = ({ navigation }: { navigation: any }) => {
     </ScrollView>
   );
 };
-
-const BackIcon = () => (
-  <Svg height="28" width="28" viewBox="0 0 456 600">
-    <Path
-      d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l192 192c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L77.3 256 246.6 86.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-192 192z"
-      fill="#fff"
-    />
-  </Svg>
-);
 
 const styles = StyleSheet.create({
   scrollContainer: {

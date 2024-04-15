@@ -8,27 +8,9 @@ import {
   StatusBar,
   Alert,
 } from "react-native";
-import { Svg, Path } from "react-native-svg";
+import { BackIcon, ResultsIcon } from "../svgs";
 import * as ImagePicker from "expo-image-picker";
 import { Camera, requestCameraPermissionsAsync, CameraType } from "expo-camera";
-
-const BackIcon = () => (
-  <Svg height="28" width="28" viewBox="0 0 456 600">
-    <Path
-      d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l192 192c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L77.3 256 246.6 86.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-192 192z"
-      fill="#fff"
-    />
-  </Svg>
-);
-
-const ResultsIcon = () => (
-  <Svg height="28" width="28" viewBox="0 0 384 512">
-    <Path
-      d="M64 0C28.7 0 0 28.7 0 64V448c0 35.3 28.7 64 64 64H320c35.3 0 64-28.7 64-64V160H256c-17.7 0-32-14.3-32-32V0H64zM256 0V128H384L256 0zM80 64h64c8.8 0 16 7.2 16 16s-7.2 16-16 16H80c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64h64c8.8 0 16 7.2 16 16s-7.2 16-16 16H80c-8.8 0-16-7.2-16-16s7.2-16 16-16zm16 96H288c17.7 0 32 14.3 32 32v64c0 17.7-14.3 32-32 32H96c-17.7 0-32-14.3-32-32V256c0-17.7 14.3-32 32-32zm0 32v64H288V256H96zM240 416h64c8.8 0 16 7.2 16 16s-7.2 16-16 16H240c-8.8 0-16-7.2-16-16s7.2-16 16-16z"
-      fill="#fff"
-    />
-  </Svg>
-);
 
 const ScanIngredients = ({ navigation }: { navigation: any }) => {
   const [hasCameraPermission, setHasCameraPermission] = useState<

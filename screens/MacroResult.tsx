@@ -11,7 +11,7 @@ import {
   StatusBar,
 } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
-import Svg, { Path } from "react-native-svg";
+import { BackIcon } from "../svgs";
 import {
   getFirestore,
   collection,
@@ -110,9 +110,7 @@ const MacroResult = ({ navigation }: { navigation: any }) => {
   };
 
   const getNutriScoreColor = (grade: string) => {
-    console.log("Grade:", grade);
     if (!grade) {
-      console.log("Grade is undefined");
       return "#dcdcdc"; // Default color if grade is undefined
     }
     const colors: { [grade: string]: string } = {
@@ -124,13 +122,10 @@ const MacroResult = ({ navigation }: { navigation: any }) => {
     };
     const color = colors[grade.toLowerCase()];
     if (!color) {
-      console.log("Color not found for grade:", grade);
-      return "#dcdcdc"; // Default color if grade is not found
+      return "#dcdcdc";
     }
     return color;
   };
-
-  console.log(scans);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -200,15 +195,6 @@ const MacroResult = ({ navigation }: { navigation: any }) => {
     </SafeAreaView>
   );
 };
-
-const BackIcon = () => (
-  <Svg height="28" width="28" viewBox="0 0 456 600">
-    <Path
-      d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l192 192c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L77.3 256 246.6 86.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-192 192z"
-      fill="#fff"
-    />
-  </Svg>
-);
 
 const styles = StyleSheet.create({
   safeArea: {
