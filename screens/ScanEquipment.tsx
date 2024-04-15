@@ -1,3 +1,5 @@
+// TODO: Fix Xbutton Render Error
+
 import React, { useState, useEffect, useRef } from "react";
 import {
   StyleSheet,
@@ -6,37 +8,39 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
+  Modal,
+  FlatList,
   Alert,
   Animated,
+  TextInput,
+  Button,
 } from "react-native";
-import { Svg, Path } from "react-native-svg";
+import { BackIcon, ResultsIcon, DownArrow, XButton } from "../svgs";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../firebase";
 import { Camera, requestCameraPermissionsAsync, CameraType } from "expo-camera";
 import { getAuth } from "firebase/auth";
-import { doc, setDoc, getFirestore } from "firebase/firestore";
+import {
+  doc,
+  setDoc,
+  getFirestore,
+  collection,
+  getDocs,
+  deleteDoc,
+  query,
+  orderBy,
+} from "firebase/firestore";
 import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const db = getFirestore();
 const auth = getAuth();
 
-const BackIcon = () => (
-  <Svg height="28" width="28" viewBox="0 0 456 600">
-    <Path
-      d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l192 192c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L77.3 256 246.6 86.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-192 192z"
-      fill="#fff"
-    />
-  </Svg>
-);
-
-const ResultsIcon = () => (
-  <Svg height="28" width="28" viewBox="0 0 384 512">
-    <Path
-      d="M64 0C28.7 0 0 28.7 0 64V448c0 35.3 28.7 64 64 64H320c35.3 0 64-28.7 64-64V160H256c-17.7 0-32-14.3-32-32V0H64zM256 0V128H384L256 0zM80 64h64c8.8 0 16 7.2 16 16s-7.2 16-16 16H80c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64h64c8.8 0 16 7.2 16 16s-7.2 16-16 16H80c-8.8 0-16-7.2-16-16s7.2-16 16-16zm16 96H288c17.7 0 32 14.3 32 32v64c0 17.7-14.3 32-32 32H96c-17.7 0-32-14.3-32-32V256c0-17.7 14.3-32 32-32zm0 32v64H288V256H96zM240 416h64c8.8 0 16 7.2 16 16s-7.2 16-16 16H240c-8.8 0-16-7.2-16-16s7.2-16 16-16z"
-      fill="#fff"
-    />
-  </Svg>
-);
+interface GymItemProps {
+  item: string; // Assuming item is a string.
+  onDelete: (item: string) => void;
+  onSelect: (item: string) => void;
+}
 
 const ScanEquipment = ({ navigation }: { navigation: any }) => {
   const [hasCameraPermission, setHasCameraPermission] = useState<
@@ -46,6 +50,82 @@ const ScanEquipment = ({ navigation }: { navigation: any }) => {
   const cameraRef = useRef<Camera>(null);
   const [snapEffectOpacity] = useState(new Animated.Value(0));
   const overlayRef = useRef<any>(null);
+  const [gyms, setGyms] = useState<string[]>([]);
+  const [selectedGym, setSelectedGym] = useState("");
+  const [dropdownVisible, setDropdownVisible] = useState(false);
+  const [isNewGymModalVisible, setIsNewGymModalVisible] = useState(false);
+  const [newGymName, setNewGymName] = useState("");
+
+  // Fetch existing gyms from Firestore
+  useEffect(() => {
+    const fetchGyms = async () => {
+      const querySnapshot = await getDocs(
+        query(collection(db, "Gyms"), orderBy("created", "desc"))
+      );
+      const gymsList = querySnapshot.docs.map((doc) => doc.id);
+      setGyms(gymsList);
+      if (gymsList.length > 0) {
+        setSelectedGym(gymsList[0]); // Automatically select the most recently created gym
+      }
+    };
+    fetchGyms();
+  }, []);
+
+  const updateSelectedGym = async (gymName: any) => {
+    setSelectedGym(gymName);
+    await AsyncStorage.setItem("selectedGym", gymName);
+  };
+
+  // When the component mounts, check AsyncStorage for the last selected gym
+  useEffect(() => {
+    const loadSelectedGym = async () => {
+      const storedGymName = await AsyncStorage.getItem("selectedGym");
+      if (storedGymName && gyms.includes(storedGymName)) {
+        setSelectedGym(storedGymName);
+      } else if (gyms.length > 0) {
+        setSelectedGym(gyms[0]); // Fallback to the most recent gym if no stored selection is valid
+      }
+    };
+    loadSelectedGym();
+  }, [gyms]); // Depend on gyms so it re-runs when gyms are fetched
+
+  const handleNewGymSave = () => {
+    if (newGymName.trim() !== "" && !gyms.includes(newGymName)) {
+      const newGymRef = doc(db, "Gyms", newGymName);
+      setDoc(newGymRef, { created: new Date() }) // Store the creation date
+        .then(() => {
+          console.log("New gym saved and selected");
+          const newGymsList = [...gyms, newGymName];
+          setGyms(newGymsList); // Update the list of gyms
+          setSelectedGym(newGymName); // Set the newly created gym as the selected gym
+          setIsNewGymModalVisible(false);
+        })
+        .catch((error) => {
+          console.error("Error saving new gym:", error);
+          Alert.alert("Error", "Failed to save new gym");
+        });
+    } else {
+      Alert.alert("Error", "Invalid or duplicate gym name");
+    }
+  };
+
+  const deleteGym = async (gymName: any) => {
+    const updatedGyms = gyms.filter((gym) => gym !== gymName);
+    setGyms(updatedGyms);
+    if (gymName === selectedGym) {
+      setSelectedGym(updatedGyms[0] || ""); // Set to the first gym or empty string if none left
+    }
+
+    // Firestore deletion
+    const gymRef = doc(db, "Gyms", gymName);
+    try {
+      await deleteDoc(gymRef);
+      Alert.alert("Success", "Gym deleted successfully.");
+    } catch (error) {
+      console.error("Error deleting gym:", error);
+      Alert.alert("Error", "Failed to delete gym.");
+    }
+  };
 
   const handleCameraLaunch = async () => {
     const { status } = await requestCameraPermissionsAsync();
@@ -79,74 +159,31 @@ const ScanEquipment = ({ navigation }: { navigation: any }) => {
       console.log("Upload complete", url);
       return url;
     } catch (error) {
-      console.error("Failed to upload image", error);
+      console.error("Failed to upload image:", error);
       Alert.alert("Upload Error", "Failed to upload image.");
       throw error; // Rethrow or handle as needed
     }
   };
 
-  const detectAndUploadEquipment = async (imageUrl: string, userId: string) => {
+  const detectAndUploadEquipment = async (imageUrl: any, userId: any) => {
     try {
-      // List of API endpoints you want to call
-      const apiEndpoints = [
-        "https://detect.roboflow.com/all-gym-equipment/2", // My custom model
-        "https://detect.roboflow.com/gym-equipment-object-detection/1",
-        // "https://outline.roboflow.com/gym-equipment-segmentation/1",
-        // "https://detect.roboflow.com/healnion-f4l32/1",
-        // "https://detect.roboflow.com/yolov5-gpr7k/1",
-        // "https://detect.roboflow.com/equipment-recognition/2",
-      ];
-
-      // Make parallel requests to all endpoints
-      const apiRequests = apiEndpoints.map((endpoint) =>
-        axios
-          .post(endpoint, null, {
-            params: {
-              api_key: "3iODpfE9UZifrPc4qDUi",
-              image: imageUrl,
-            },
-          })
-          .then((response) => ({
-            source: endpoint,
-            predictions: response.data.predictions,
-          }))
-      );
-
-      // Wait for all requests to complete
-      const responses = await Promise.all(apiRequests);
-
-      // Combine all predictions from all responses and keep track of their source URLs
-      let allPredictions: any = [];
-      responses.forEach(({ source, predictions }) => {
-        allPredictions = allPredictions.concat(
-          predictions.map((prediction: any) => ({
-            ...prediction,
-            source,
-          }))
-        );
+      const apiEndpoint = "https://detect.roboflow.com/all-gym-equipment/2";
+      const response = await axios.post(apiEndpoint, null, {
+        params: { api_key: "3iODpfE9UZifrPc4qDUi", image: imageUrl },
       });
-
-      // Check if the combined predictions array is empty
-      if (allPredictions.length === 0) {
+      const predictions = response.data.predictions;
+      if (!predictions.length) {
         Alert.alert("No equipment detected", "Please try another image.");
         return;
       }
-
-      // Find the prediction with the highest confidence across all responses
-      const highestConfidencePrediction = allPredictions.reduce(
+      const highestConfidencePrediction = predictions.reduce(
         (prev: any, current: any) => {
           return prev.confidence > current.confidence ? prev : current;
         }
       );
-
-      const confidencePercentage =
-        Math.round(highestConfidencePrediction.confidence * 100 * 100) / 100;
-
-      console.log(
-        `Highest confidence prediction came from: ${highestConfidencePrediction.source}`
-      );
-
-      // Prepare to show the alert with options
+      const confidencePercentage = (
+        highestConfidencePrediction.confidence * 100
+      ).toFixed(2);
       Alert.alert(
         "Equipment Detected",
         `We detected: ${highestConfidencePrediction.class} with a confidence of ${confidencePercentage}%. Do you want to save this detection?`,
@@ -160,27 +197,35 @@ const ScanEquipment = ({ navigation }: { navigation: any }) => {
             text: "Cancel",
             onPress: () => console.log("Detection not saved."),
           },
-        ],
-        { cancelable: false }
+        ]
       );
     } catch (error) {
-      console.error("Error detecting equipment or saving to Firestore:", error);
-      Alert.alert("Error", "There was a problem with the image processing.");
+      console.error("Error detecting equipment:", error);
+      Alert.alert(
+        "Detection Error",
+        "An error occurred during equipment detection."
+      );
     }
   };
 
   const saveDetection = async (prediction: any, userId: any, imageUrl: any) => {
     try {
-      const userScansRef = doc(db, "PrivateGymEquipment", userId);
-      await setDoc(
-        userScansRef,
-        { data: { ...prediction, imageUrl } },
-        { merge: true }
-      );
+      if (!selectedGym) {
+        Alert.alert("Error", "No gym selected.");
+        return;
+      }
+      const gymEquipmentRef = collection(db, "Gyms", selectedGym, "Scans");
+      const newEquipmentRef = doc(gymEquipmentRef);
+      await setDoc(newEquipmentRef, {
+        class: prediction.class,
+        confidence: prediction.confidence,
+        imageUrl: imageUrl,
+      });
+
       console.log("Detection saved successfully.");
       Alert.alert("Success", "Detection has been saved to the database.");
     } catch (error) {
-      console.error("Error saving detection to Firestore:", error);
+      console.error("Error saving detection:", error);
       Alert.alert("Save Error", "Failed to save detection.");
     }
   };
@@ -255,6 +300,24 @@ const ScanEquipment = ({ navigation }: { navigation: any }) => {
         errorMessage || "An error occurred"
       );
     }
+  };
+
+  const GymItem = ({ item, onDelete, onSelect }: GymItemProps) => {
+    return (
+      <View style={styles.dropdownItemRow}>
+        <TouchableOpacity
+          style={styles.dropdownItem}
+          onPress={() => onSelect(item)}
+        >
+          <Text style={styles.itemText}>{item}</Text>
+        </TouchableOpacity>
+        {item !== "Create new gym..." && (
+          <TouchableOpacity onPress={() => onDelete(item)}>
+            <XButton />
+          </TouchableOpacity>
+        )}
+      </View>
+    );
   };
 
   if (hasCameraPermission === null || hasCameraPermission === false) {
@@ -333,6 +396,69 @@ const ScanEquipment = ({ navigation }: { navigation: any }) => {
         <View>
           <Text style={styles.pageHeader}>Scan Equipment</Text>
         </View>
+        <View style={styles.gymDropdown}>
+          <TouchableOpacity
+            style={styles.dropdownTrigger}
+            onPress={() => setDropdownVisible(!dropdownVisible)}
+          >
+            <Text style={styles.triggerText}>
+              {selectedGym || "Select Gym"}
+            </Text>
+            <DownArrow />
+          </TouchableOpacity>
+          {dropdownVisible && (
+            <FlatList
+              data={[...gyms, "Create new gym..."]}
+              style={styles.dropdownList}
+              renderItem={({ item }) => (
+                <GymItem
+                  item={item}
+                  onDelete={deleteGym}
+                  onSelect={(item) => {
+                    if (item === "Create new gym...") {
+                      setIsNewGymModalVisible(true);
+                    } else {
+                      setSelectedGym(item);
+                      setDropdownVisible(false);
+                    }
+                  }}
+                />
+              )}
+              keyExtractor={(item) => item} // Assuming item names are unique
+            />
+          )}
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={isNewGymModalVisible}
+            onRequestClose={() => {
+              setIsNewGymModalVisible(false);
+            }}
+          >
+            <TouchableOpacity
+              style={styles.centeredView}
+              activeOpacity={1}
+              onPressOut={() => {
+                setIsNewGymModalVisible(false);
+              }}
+            >
+              <View style={styles.modalContent}>
+                <TextInput
+                  style={styles.input}
+                  onChangeText={setNewGymName}
+                  value={newGymName}
+                  placeholder="Enter new gym name"
+                />
+                <TouchableOpacity
+                  style={styles.saveButton}
+                  onPress={handleNewGymSave}
+                >
+                  <Text style={styles.saveButtonText}>Save</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          </Modal>
+        </View>
         <View style={styles.scanButton}>
           <Camera
             ref={cameraRef}
@@ -380,13 +506,6 @@ const styles = StyleSheet.create({
   },
   BackIcon: {},
   ResultsIcon: {},
-  pageHeader: {
-    fontSize: 20,
-    fontFamily: "SFProRounded-Heavy",
-    color: "#fff",
-    textAlign: "center",
-    marginBottom: 20,
-  },
   noteContainer: {
     marginLeft: "5%",
     marginRight: "5%",
@@ -433,6 +552,93 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
   },
+  pageHeader: {
+    fontSize: 20,
+    fontFamily: "SFProRounded-Heavy",
+    color: "#fff",
+    textAlign: "center",
+    marginBottom: 5,
+  },
+  gymDropdown: {
+    marginHorizontal: 20,
+  },
+  dropdownTrigger: {
+    flexDirection: "row", // Ensures the text and the arrow are on the same line
+    alignItems: "center",
+    padding: 10,
+  },
+  triggerText: {
+    marginRight: 5,
+    fontSize: 18,
+    color: "#fff",
+    fontFamily: "SFProRounded-Heavy",
+  },
+  dropdownList: {
+    borderWidth: 1,
+  },
+  dropdownItemRow: {
+    flexDirection: "row",
+    justifyContent: "space-between", // Ensures space distribution
+    alignItems: "center",
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#fff",
+    width: "100%", // Ensures it covers full width of its container
+  },
+  dropdownItem: {
+    flex: 1,
+  },
+  itemText: {
+    color: "#fff",
+    fontFamily: "SFProRounded-Regular",
+    fontSize: 16,
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 20,
+    backgroundColor: "rgba(0, 0, 0, 0.5)", // semi-transparent background
+  },
+  modalContent: {
+    width: "80%", // Set the width of the modal content
+    backgroundColor: "white",
+    borderRadius: 5,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    alignItems: "center", // Center items vertically in the modal
+  },
+  input: {
+    height: 40,
+    margin: 12,
+    borderWidth: 1,
+    padding: 10,
+    backgroundColor: "#fff",
+    color: "#000",
+  },
+  saveButton: {
+    backgroundColor: "#007BFF", // Bootstrap primary blue
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5,
+  },
+  saveButtonText: {
+    color: "white",
+    fontSize: 16,
+    textAlign: "center",
+  },
   scanButton: {
     padding: 10,
     backgroundColor: "#000",
@@ -443,14 +649,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   camera: {
-    marginTop: "10%",
+    marginTop: 10,
     width: "100%",
     height: "100%",
-    marginBottom: 20,
   },
   captureButton: {
     position: "absolute",
-    bottom: 0,
+    bottom: "5%",
     alignSelf: "center",
     width: 60,
     height: 60,
