@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+// TODO
+
+import React, { useState, useRef } from "react";
 import {
   StyleSheet,
   View,
@@ -8,14 +10,20 @@ import {
   StatusBar,
   Alert,
 } from "react-native";
+import {
+  Camera,
+  CameraType,
+  CameraCapturedPicture,
+  requestCameraPermissionsAsync,
+} from "expo-camera";
 import { BackIcon, ResultsIcon } from "../svgs";
-import * as ImagePicker from "expo-image-picker";
-import { Camera, requestCameraPermissionsAsync, CameraType } from "expo-camera";
+import axios from "axios";
 
 const ScanIngredients = ({ navigation }: { navigation: any }) => {
   const [hasCameraPermission, setHasCameraPermission] = useState<
     boolean | null
   >(null);
+  const cameraRef = useRef<Camera>(null);
 
   const handleCameraLaunch = async () => {
     const { status } = await requestCameraPermissionsAsync();
@@ -29,11 +37,64 @@ const ScanIngredients = ({ navigation }: { navigation: any }) => {
     }
   };
 
-  const pickImage = async () => {
-    await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 1,
-      allowsMultipleSelection: true,
+  const takePictureAndUpload = async () => {
+    if (cameraRef.current) {
+      const photo = await cameraRef.current.takePictureAsync();
+      console.log("Picture taken:", photo.uri);
+      detectIngredients(photo.uri);
+    }
+  };
+  //AIzaSyATIwQpoEwr8iE8E7SqEbca5JEIdTVrf_w
+  const detectIngredients = async (uri: string) => {
+    const apiKey = "AIzaSyATIwQpoEwr8iE8E7SqEbca5JEIdTVrf_w"; // Your actual API key
+    const url = `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`;
+
+    const base64Image = await convertImageToBase64(uri);
+
+    const body = {
+      requests: [
+        {
+          features: [{ type: "OBJECT_LOCALIZATION" }],
+          image: { content: base64Image },
+        },
+      ],
+    };
+
+    try {
+      const response = await axios.post(url, body);
+      // Extracting the 'name' field from localizedObjectAnnotations
+      const objects =
+        response.data.responses[0].localizedObjectAnnotations || [];
+      const objectNames = objects.map((object: any) => object.name).join("\n");
+      Alert.alert(
+        "Detected Ingredients",
+        objectNames || "No ingredients detected."
+      );
+    } catch (error) {
+      console.error("Google Vision API Error: ", error);
+      Alert.alert(
+        "Error",
+        "Failed to process the image with Google Vision API"
+      );
+    }
+  };
+
+  // Updated function with better error handling and type assertions
+  const convertImageToBase64 = async (uri: string) => {
+    const response = await fetch(uri);
+    const blob = await response.blob();
+    return new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        // Ensure reader.result is treated as a string
+        if (typeof reader.result === "string") {
+          resolve(reader.result.split(",")[1]);
+        } else {
+          reject(new Error("Unexpected result type"));
+        }
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
     });
   };
 
@@ -114,19 +175,16 @@ const ScanIngredients = ({ navigation }: { navigation: any }) => {
           <Text style={styles.pageHeader}>Scan Ingredients</Text>
         </View>
         <View style={styles.scanButton}>
-          <Camera style={styles.camera} type={CameraType.back} />
-          {/* Add a 'Take Picture' button */}
+          <Camera
+            style={styles.camera}
+            type={CameraType.back}
+            ref={cameraRef}
+          />
           <TouchableOpacity
             style={styles.captureButton}
-            onPress={() => {
-              /* Here you would handle the photo capture */
-            }}
+            onPress={takePictureAndUpload}
           >
             <View style={styles.captureButtonInner} />
-          </TouchableOpacity>
-          <Text style={styles.orText}>OR</Text>
-          <TouchableOpacity style={styles.button} onPress={pickImage}>
-            <Text style={styles.textStyle}>Select Photos</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -235,21 +293,6 @@ const styles = StyleSheet.create({
     height: 55,
     borderRadius: 30,
     backgroundColor: "#aaa",
-  },
-  button: {
-    borderRadius: 20,
-    width: "40%",
-    padding: 10,
-    elevation: 2,
-    backgroundColor: "#fff",
-    marginBottom: 10,
-    marginTop: 20,
-  },
-  orText: {
-    color: "#fff",
-    fontSize: 28,
-    fontFamily: "SFProRounded-Heavy",
-    textAlign: "center",
   },
 });
 
