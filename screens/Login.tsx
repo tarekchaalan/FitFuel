@@ -7,11 +7,11 @@ import {
   Image,
   StyleSheet,
   Dimensions,
-  ScrollView,
   KeyboardAvoidingView,
   Animated,
   Alert,
 } from "react-native";
+import { ScrollView } from "react-native-gesture-handler";
 import { auth } from "../firebase";
 import {
   signInWithEmailAndPassword,
@@ -149,16 +149,16 @@ const Login = ({ navigation }: { navigation: any }) => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <KeyboardAvoidingView style={styles.container}>
-        <View style={styles.logoContainer}>
-          <Image
-            source={require("../assets/images/logo.png")}
-            style={styles.logo}
-          />
-          <Text style={styles.title}>FitFuel</Text>
-          <Text style={styles.subtitle}>Achieve your fitness goals</Text>
-        </View>
+    <KeyboardAvoidingView style={styles.container}>
+      <View style={styles.logoContainer}>
+        <Image
+          source={require("../assets/images/logo.png")}
+          style={styles.logo}
+        />
+        <Text style={styles.title}>FitFuel</Text>
+        <Text style={styles.subtitle}>Achieve your fitness goals</Text>
+      </View>
+      <ScrollView style={styles.scrollContainer}>
         <View style={styles.inputContainer}>
           <View style={styles.inputFieldContainer}>
             <TextInput
@@ -227,8 +227,8 @@ const Login = ({ navigation }: { navigation: any }) => {
             <Text style={styles.signupLink}>Sign up</Text>
           </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -236,7 +236,8 @@ const screenHeight = Dimensions.get("window").height;
 const logoSizeFactor = 0.18;
 const styles = StyleSheet.create({
   scrollContainer: {
-    flexGrow: 1,
+    width: "85%",
+    marginTop: "3%",
   },
   container: {
     flex: 1,
@@ -265,12 +266,11 @@ const styles = StyleSheet.create({
     marginBottom: "10%",
   },
   inputContainer: {
-    width: "85%",
+    width: "100%",
   },
   inputFieldContainer: {
     marginBottom: 20,
   },
-
   input: {
     backgroundColor: "#333",
     borderRadius: 20,
@@ -300,22 +300,23 @@ const styles = StyleSheet.create({
     marginBottom: "5%",
   },
   loginButton: {
-    width: "85%",
+    width: "50%",
     height: 50,
     backgroundColor: "#9A2CE8",
     borderRadius: 20,
     paddingHorizontal: 20,
     paddingVertical: 5,
     opacity: 0.8,
-    marginBottom: 20,
+    marginTop: 25,
+    marginBottom: 10,
     alignItems: "center",
+    alignSelf: "center",
     justifyContent: "center",
   },
   loginButtonText: {
-    color: "#fff",
+    color: "#ffffff",
     fontSize: 24,
     fontWeight: "bold",
-    textAlign: "center", // Center the text horizontally
   },
   orContainer: {
     flexDirection: "row",
@@ -381,9 +382,12 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   signupContainer: {
+    marginTop: "10%",
     flexDirection: "row",
     marginBottom: 20,
-    marginTop: "10%",
+    alignItems: "center",
+    alignSelf: "center",
+    justifyContent: "center",
   },
   signupText: {
     color: "#aaa",

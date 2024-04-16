@@ -33,6 +33,7 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../firebase";
+import { ScrollView } from "react-native-gesture-handler";
 // import {
 //   GoogleSignin,
 //   statusCodes,
@@ -223,63 +224,64 @@ const Signup = ({ navigation }: { navigation: any }) => {
           )}
         </TouchableOpacity>
       </View>
-      <View style={styles.inputContainer}>
-        <TextInput
-          placeholder="Full Name"
-          value={fullName}
-          onChangeText={(text) => setFullName(text)}
-          placeholderTextColor="#aaaaaa"
-          style={styles.input}
-        />
-        <TextInput
-          placeholder="Username"
-          value={username}
-          onChangeText={(text) => setUsername(text)}
-          placeholderTextColor="#aaaaaa"
-          style={styles.input}
-        />
-        <TextInput
-          placeholder="Email"
-          value={email}
-          onChangeText={(text) => setEmail(text)}
-          placeholderTextColor="#aaaaaa"
-          style={styles.input}
-        />
-        <View style={styles.CountryContainer}>
-          {renderCallingCode()}
+      <ScrollView style={styles.scrollContainer}>
+        <View style={styles.inputContainer}>
           <TextInput
-            placeholder="Phone Number"
-            value={formattedPhoneNumber}
-            onChangeText={handlePhoneNumberChange} // Correctly hook up the handler here
+            placeholder="Full Name"
+            value={fullName}
+            onChangeText={(text) => setFullName(text)}
             placeholderTextColor="#aaaaaa"
-            keyboardType="phone-pad"
-            style={styles.Numberinput}
-          />
-        </View>
-        <View style={styles.inputFieldContainer}>
-          <TextInput
-            placeholder="Password"
-            value={password}
-            onChangeText={(text) => setPassword(text)}
-            placeholderTextColor="#aaaaaa"
-            secureTextEntry={!passwordVisible}
-            key={passwordVisible ? "hidden" : "visible"}
             style={styles.input}
           />
-          <TouchableOpacity
-            onPress={togglePasswordVisibility}
-            style={styles.eyeIcon}
-          >
-            <Animated.View style={animatedStyle}>
-              {passwordVisible ? <OpenEyeIcon /> : <ClosedEyeIcon />}
-            </Animated.View>
-          </TouchableOpacity>
+          <TextInput
+            placeholder="Username"
+            value={username}
+            onChangeText={(text) => setUsername(text)}
+            placeholderTextColor="#aaaaaa"
+            style={styles.input}
+          />
+          <TextInput
+            placeholder="Email"
+            value={email}
+            onChangeText={(text) => setEmail(text)}
+            placeholderTextColor="#aaaaaa"
+            style={styles.input}
+          />
+          <View style={styles.CountryContainer}>
+            {renderCallingCode()}
+            <TextInput
+              placeholder="Phone Number"
+              value={formattedPhoneNumber}
+              onChangeText={handlePhoneNumberChange} // Correctly hook up the handler here
+              placeholderTextColor="#aaaaaa"
+              keyboardType="phone-pad"
+              style={styles.Numberinput}
+            />
+          </View>
+          <View style={styles.inputFieldContainer}>
+            <TextInput
+              placeholder="Password"
+              value={password}
+              onChangeText={(text) => setPassword(text)}
+              placeholderTextColor="#aaaaaa"
+              secureTextEntry={!passwordVisible}
+              key={passwordVisible ? "hidden" : "visible"}
+              style={styles.input}
+            />
+            <TouchableOpacity
+              onPress={togglePasswordVisibility}
+              style={styles.eyeIcon}
+            >
+              <Animated.View style={animatedStyle}>
+                {passwordVisible ? <OpenEyeIcon /> : <ClosedEyeIcon />}
+              </Animated.View>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-      <TouchableOpacity onPress={handleSignUp} style={styles.SignUpButton}>
-        <Text style={styles.SignUpButtonText}>Sign Up</Text>
-      </TouchableOpacity>
-      {/* <View style={styles.orContainer}>
+        <TouchableOpacity onPress={handleSignUp} style={styles.SignUpButton}>
+          <Text style={styles.SignUpButtonText}>Sign Up</Text>
+        </TouchableOpacity>
+        {/* <View style={styles.orContainer}>
           <View style={styles.line} />
           <Text style={styles.orText}>or</Text>
           <View style={styles.line} />
@@ -297,19 +299,21 @@ const Signup = ({ navigation }: { navigation: any }) => {
             <Text style={styles.GithubButtonText}>Github</Text>
           </TouchableOpacity>
         </View> */}
-      <View style={styles.LoginContainer}>
-        <Text style={styles.LoginText}>Already Have an Account?</Text>
-        <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-          <Text style={styles.LoginLink}>Login</Text>
-        </TouchableOpacity>
-      </View>
+        <View style={styles.LoginContainer}>
+          <Text style={styles.LoginText}>Already Have an Account?</Text>
+          <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+            <Text style={styles.LoginLink}>Login</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
   scrollContainer: {
-    flexGrow: 1,
+    width: "85%",
+    marginTop: "3%",
   },
   container: {
     flex: 1,
@@ -344,7 +348,7 @@ const styles = StyleSheet.create({
     marginBottom: "4%",
   },
   inputContainer: {
-    width: "85%",
+    width: "100%",
   },
   inputFieldContainer: {},
   input: {
@@ -395,7 +399,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   SignUpButton: {
-    width: "85%",
+    width: "50%",
     height: 50,
     backgroundColor: "#9A2CE8",
     borderRadius: 20,
@@ -404,82 +408,85 @@ const styles = StyleSheet.create({
     opacity: 0.8,
     marginTop: 25,
     marginBottom: 10,
-    alignItems: "center", // Align items horizontally in the center
-    justifyContent: "center", // Align items vertically in the center
+    alignItems: "center",
+    alignSelf: "center",
+    justifyContent: "center",
   },
   SignUpButtonText: {
     color: "#ffffff",
     fontSize: 24,
     fontWeight: "bold",
-    textAlign: "center", // Center the text horizontally
   },
-  orContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 10,
-  },
-  line: {
-    flex: 1,
-    height: 1,
-    backgroundColor: "#333",
-  },
-  orText: {
-    width: "7%",
-    textAlign: "center",
-    color: "#ffffff",
-  },
-  SUW: {
-    alignItems: "center",
-    marginBottom: "5%",
-  },
-  SUWText: {
-    color: "#ffffff",
-    fontSize: 26,
-    fontFamily: "SFProText-Regular",
-  },
-  socialLoginContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-  },
-  GoogleButton: {
-    width: "32%",
-    backgroundColor: "#fff",
-    padding: 8,
-    borderRadius: 25,
-    marginHorizontal: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-  },
-  GithubButton: {
-    width: "32%",
-    backgroundColor: "#fff",
-    padding: 8,
-    borderRadius: 25,
-    marginHorizontal: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-  },
-  GoogleButtonText: {
-    color: "#000",
-    marginLeft: 15,
-    fontSize: 17,
-    fontWeight: "bold",
-  },
-  GithubButtonText: {
-    color: "#000",
-    marginLeft: 15,
-    fontSize: 17,
-    fontWeight: "bold",
-  },
+  // orContainer: {
+  //   flexDirection: "row",
+  //   alignItems: "center",
+  //   marginVertical: 10,
+  // },
+  // line: {
+  //   flex: 1,
+  //   height: 1,
+  //   backgroundColor: "#333",
+  // },
+  // orText: {
+  //   width: "7%",
+  //   textAlign: "center",
+  //   color: "#ffffff",
+  // },
+  // SUW: {
+  //   alignItems: "center",
+  //   marginBottom: "5%",
+  // },
+  // SUWText: {
+  //   color: "#ffffff",
+  //   fontSize: 26,
+  //   fontFamily: "SFProText-Regular",
+  // },
+  // socialLoginContainer: {
+  //   flexDirection: "row",
+  //   justifyContent: "space-around",
+  //   alignItems: "center",
+  // },
+  // GoogleButton: {
+  //   width: "32%",
+  //   backgroundColor: "#fff",
+  //   padding: 8,
+  //   borderRadius: 25,
+  //   marginHorizontal: 10,
+  //   flexDirection: "row",
+  //   alignItems: "center",
+  //   justifyContent: "center",
+  //   borderWidth: 1,
+  // },
+  // GithubButton: {
+  //   width: "32%",
+  //   backgroundColor: "#fff",
+  //   padding: 8,
+  //   borderRadius: 25,
+  //   marginHorizontal: 10,
+  //   flexDirection: "row",
+  //   alignItems: "center",
+  //   justifyContent: "center",
+  //   borderWidth: 1,
+  // },
+  // GoogleButtonText: {
+  //   color: "#000",
+  //   marginLeft: 15,
+  //   fontSize: 17,
+  //   fontWeight: "bold",
+  // },
+  // GithubButtonText: {
+  //   color: "#000",
+  //   marginLeft: 15,
+  //   fontSize: 17,
+  //   fontWeight: "bold",
+  // },
   LoginContainer: {
     marginTop: "10%",
     flexDirection: "row",
     marginBottom: 20,
+    alignItems: "center", // This ensures the content is centered horizontally
+    alignSelf: "center", // This ensures the content is centered horizontally
+    justifyContent: "center", // This ensures the content is centered vertically
   },
   LoginText: {
     color: "#aaaaaa",
