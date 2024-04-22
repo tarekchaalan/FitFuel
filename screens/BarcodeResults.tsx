@@ -31,6 +31,7 @@ interface ProductInfo {
   image_url: string;
   name: string;
   nutritional_info: NutritionalInfo;
+  nutriscore_grade?: string;
 }
 
 const saveScan = async (scanData: any, navigation: any) => {
@@ -58,6 +59,20 @@ const saveScan = async (scanData: any, navigation: any) => {
   }
 };
 
+const getNutriScoreColor = (grade: string) => {
+  if (!grade) {
+    return "#dcdcdc"; // Default color if grade is undefined
+  }
+  const colors: { [grade: string]: string } = {
+    a: "#038141", // Green
+    b: "#85BB2F", // Light Green
+    c: "#FECB02", // Yellow
+    d: "#EE8100", // Orange
+    e: "#E63E11", // Red
+  };
+  return colors[grade.toLowerCase()] || "#dcdcdc";
+};
+
 const BarcodeResults = ({
   navigation,
   route,
@@ -83,7 +98,13 @@ const BarcodeResults = ({
                 style={styles.productImage}
                 resizeMode="contain"
               />
-              <Text style={styles.productName}>{productInfo.name}</Text>
+              <Text
+                style={styles.productName}
+                numberOfLines={2}
+                ellipsizeMode="tail"
+              >
+                {productInfo.name}
+              </Text>
               <View style={styles.nutritionalInfo}>
                 <Text style={styles.per100gText}>( Per 100g )</Text>
                 {Object.entries(productInfo.nutritional_info).map(
@@ -99,6 +120,23 @@ const BarcodeResults = ({
                       </Text>
                     </View>
                   )
+                )}
+                {productInfo.nutriscore_grade && (
+                  <View style={styles.nutriScoreRow}>
+                    <Text style={styles.nutrientText}>Nutri-Score:</Text>
+                    <View
+                      style={{
+                        ...styles.nutriScoreBox,
+                        backgroundColor: getNutriScoreColor(
+                          productInfo.nutriscore_grade
+                        ),
+                      }}
+                    >
+                      <Text style={styles.nutriScoreText}>
+                        {productInfo.nutriscore_grade.toUpperCase()}
+                      </Text>
+                    </View>
+                  </View>
                 )}
               </View>
               <View style={styles.buttonRow}>
@@ -178,6 +216,26 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: "#fff",
     marginLeft: 10,
+  },
+  nutriScoreRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center", // Ensure vertical centering within the row
+    marginBottom: 15,
+    marginRight: 10,
+    paddingBottom: 10,
+    borderBottomColor: "#ffffff33",
+    borderBottomWidth: 1,
+  },
+  nutriScoreBox: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 3,
+    backgroundColor: "#dcdcdc", // Default background color
+  },
+  nutriScoreText: {
+    color: "#fff",
+    fontWeight: "bold",
   },
   buttonRow: {
     flexDirection: "row",
