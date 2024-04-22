@@ -10,6 +10,7 @@ import {
   Animated,
   Alert,
 } from "react-native";
+import { ScrollView } from "react-native-gesture-handler";
 import { auth } from "../firebase";
 import {
   createUserWithEmailAndPassword,
@@ -33,7 +34,6 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../firebase";
-import { ScrollView } from "react-native-gesture-handler";
 // import {
 //   GoogleSignin,
 //   statusCodes,
