@@ -13,6 +13,7 @@ import {
   TextInput,
   Button,
 } from "react-native";
+import { ScrollView } from "react-native-gesture-handler";
 import { BackIcon, ResultsIcon, DownArrow, XButton } from "../svgs";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../firebase";
@@ -57,13 +58,20 @@ const ScanEquipment = ({ navigation }: { navigation: any }) => {
   // Fetch existing gyms from Firestore
   useEffect(() => {
     const fetchGyms = async () => {
-      const querySnapshot = await getDocs(
-        query(collection(db, "Gyms"), orderBy("created", "desc"))
-      );
-      const gymsList = querySnapshot.docs.map((doc) => doc.id);
-      setGyms(gymsList);
-      if (gymsList.length > 0) {
-        setSelectedGym(gymsList[0]); // Automatically select the most recently created gym
+      const user = auth.currentUser;
+      if (user) {
+        const gymsCollectionRef = collection(db, "Gyms", user.uid, "UserGyms");
+        const querySnapshot = await getDocs(
+          query(gymsCollectionRef, orderBy("created", "desc"))
+        );
+        const gymsList = querySnapshot.docs.map((doc) => doc.id);
+        setGyms(gymsList);
+        if (gymsList.length > 0) {
+          setSelectedGym(gymsList[0]);
+        }
+      } else {
+        // Handle case where user is not logged in
+        console.log("User not authenticated");
       }
     };
     fetchGyms();
@@ -81,21 +89,22 @@ const ScanEquipment = ({ navigation }: { navigation: any }) => {
       if (storedGymName && gyms.includes(storedGymName)) {
         setSelectedGym(storedGymName);
       } else if (gyms.length > 0) {
-        setSelectedGym(gyms[0]); // Fallback to the most recent gym if no stored selection is valid
+        setSelectedGym(gyms[0]);
       }
     };
     loadSelectedGym();
   }, [gyms]); // Depend on gyms so it re-runs when gyms are fetched
 
-  const handleNewGymSave = () => {
-    if (newGymName.trim() !== "" && !gyms.includes(newGymName)) {
-      const newGymRef = doc(db, "Gyms", newGymName);
-      setDoc(newGymRef, { created: new Date() }) // Store the creation date
+  const handleNewGymSave = async () => {
+    const user = auth.currentUser;
+    if (user && newGymName.trim() !== "" && !gyms.includes(newGymName)) {
+      const newGymRef = doc(db, "Gyms", user.uid, "UserGyms", newGymName);
+      setDoc(newGymRef, { created: new Date() })
         .then(() => {
           console.log("New gym saved and selected");
           const newGymsList = [...gyms, newGymName];
-          setGyms(newGymsList); // Update the list of gyms
-          setSelectedGym(newGymName); // Set the newly created gym as the selected gym
+          setGyms(newGymsList);
+          setSelectedGym(newGymName);
           setIsNewGymModalVisible(false);
         })
         .catch((error) => {
@@ -103,25 +112,32 @@ const ScanEquipment = ({ navigation }: { navigation: any }) => {
           Alert.alert("Error", "Failed to save new gym");
         });
     } else {
-      Alert.alert("Error", "Invalid or duplicate gym name");
+      Alert.alert(
+        "Error",
+        "Invalid or duplicate gym name or user not logged in"
+      );
     }
   };
 
-  const deleteGym = async (gymName: any) => {
-    const updatedGyms = gyms.filter((gym) => gym !== gymName);
-    setGyms(updatedGyms);
-    if (gymName === selectedGym) {
-      setSelectedGym(updatedGyms[0] || ""); // Set to the first gym or empty string if none left
-    }
-
-    // Firestore deletion
-    const gymRef = doc(db, "Gyms", gymName);
-    try {
-      await deleteDoc(gymRef);
-      Alert.alert("Success", "Gym deleted successfully.");
-    } catch (error) {
-      console.error("Error deleting gym:", error);
-      Alert.alert("Error", "Failed to delete gym.");
+  const deleteGym = async (gymName: string) => {
+    const user = auth.currentUser;
+    if (user) {
+      const gymRef = doc(db, "Gyms", user.uid, "UserGyms", gymName);
+      try {
+        await deleteDoc(gymRef);
+        const updatedGyms = gyms.filter((g) => g !== gymName);
+        setGyms(updatedGyms);
+        setSelectedGym(updatedGyms[0] || "");
+        Alert.alert("Success", "Gym deleted successfully.");
+      } catch (error) {
+        console.error("Error deleting gym:", error);
+        Alert.alert("Error", "Failed to delete gym.");
+      }
+    } else {
+      Alert.alert(
+        "User Error",
+        "You must be logged in to perform this action."
+      );
     }
   };
 
@@ -159,7 +175,7 @@ const ScanEquipment = ({ navigation }: { navigation: any }) => {
     } catch (error) {
       console.error("Failed to upload image:", error);
       Alert.alert("Upload Error", "Failed to upload image.");
-      throw error; // Rethrow or handle as needed
+      throw error;
     }
   };
 
@@ -212,7 +228,15 @@ const ScanEquipment = ({ navigation }: { navigation: any }) => {
         Alert.alert("Error", "No gym selected.");
         return;
       }
-      const gymEquipmentRef = collection(db, "Gyms", selectedGym, "Scans");
+      // Correct the reference to include the user ID and use the "UserGyms" subcollection
+      const gymEquipmentRef = collection(
+        db,
+        "Gyms",
+        userId,
+        "UserGyms",
+        selectedGym,
+        "Scans"
+      );
       const newEquipmentRef = doc(gymEquipmentRef);
       await setDoc(newEquipmentRef, {
         class: prediction.class,
@@ -337,37 +361,39 @@ const ScanEquipment = ({ navigation }: { navigation: any }) => {
               <ResultsIcon />
             </TouchableOpacity>
           </View>
-          <View style={styles.noteContainer}>
-            <Text style={styles.noteTitle}>Instructions</Text>
-            <Text style={styles.noteText}>
-              Simply take images of the equipment in your gym, this will allow
-              us to come up with customized workout plans.
-              {"\n"}
-              {"\n"}
-              You should only proceed to the next page if you are working out at
-              a <Text style={styles.noteTextDecorated}>PRIVATE</Text> gym.
-              {"\n"}
-              Please scan one machine at a time.
-              {"\n"}
-              {"\n"}
-              If you have already scanned your equipment before, go back,
-              there's no need to re-scan unless theres something you missed.
-              {"\n"}
-              {"\n"}
-              If you are working out at a{" "}
-              <Text style={styles.noteTextDecorated}>PUBLIC</Text> gym, we will
-              assume that you have access to all gym equipment, and there is NO
-              NEED for you to scan anything.
-            </Text>
-          </View>
-          <View style={styles.grantContainer}>
-            <TouchableOpacity
-              style={styles.grantButton}
-              onPress={handleCameraLaunch}
-            >
-              <Text style={styles.grantText}>Continue</Text>
-            </TouchableOpacity>
-          </View>
+          <Text style={styles.noteTitle}>Instructions</Text>
+          <ScrollView style={styles.scrollView}>
+            <View style={styles.noteContainer}>
+              <Text style={styles.noteText}>
+                Simply take images of the equipment in your gym, this will allow
+                us to come up with customized workout plans.
+                {"\n"}
+                {"\n"}
+                You should only proceed to the next page if you are working out
+                at a <Text style={styles.noteTextDecorated}>PRIVATE</Text> gym.
+                {"\n"}
+                Please scan one machine at a time.
+                {"\n"}
+                {"\n"}
+                If you have already scanned your equipment before, go back,
+                there's no need to re-scan unless there's something you missed.
+                {"\n"}
+                {"\n"}
+                If you are working out at a{" "}
+                <Text style={styles.noteTextDecorated}>PUBLIC</Text> gym, we
+                will assume that you have access to all gym equipment, and there
+                is NO NEED for you to scan anything.
+              </Text>
+            </View>
+            <View style={styles.grantContainer}>
+              <TouchableOpacity
+                style={styles.grantButton}
+                onPress={handleCameraLaunch}
+              >
+                <Text style={styles.grantText}>Continue</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
         </SafeAreaView>
       </View>
     );
@@ -504,6 +530,7 @@ const styles = StyleSheet.create({
   },
   BackIcon: {},
   ResultsIcon: {},
+  scrollView: {},
   noteContainer: {
     marginLeft: "5%",
     marginRight: "5%",
@@ -514,12 +541,14 @@ const styles = StyleSheet.create({
     fontFamily: "SFProRounded-Heavy",
     color: "#fff",
     marginBottom: 20,
+    alignSelf: "center",
     marginTop: 10,
   },
   noteText: {
     fontSize: 20,
     fontFamily: "SFProText-Light",
     color: "#fff",
+    marginBottom: "10%",
   },
   noteTextDecorated: {
     color: "#9A2CE8",
