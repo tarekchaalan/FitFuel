@@ -8,6 +8,7 @@ import {
   StatusBar,
   Alert,
 } from "react-native";
+import { ScrollView } from "react-native-gesture-handler";
 import { useFocusEffect } from "@react-navigation/native";
 import { BackIcon, ResultsIcon } from "../svgs";
 import { CameraView, Camera } from "expo-camera/next";
@@ -134,28 +135,30 @@ const MacroChecker = ({ navigation }: { navigation: any }) => {
               <ResultsIcon />
             </TouchableOpacity>
           </View>
-          <View style={styles.noteContainer}>
-            <Text style={styles.noteTitle}>Instructions</Text>
-            <Text style={styles.noteText}>
-              Simply scan a barcode of any food item
-              {/* (making sure most of the ingredients within it are visible) */}
-              {"\n"}
-              {"\n"}
-              {/* Another option is to scan the barcode if one is available.
+          <Text style={styles.noteTitle}>Instructions</Text>
+          <ScrollView style={styles.scrollView}>
+            <View style={styles.noteContainer}>
+              <Text style={styles.noteText}>
+                Simply scan a barcode of any food item
+                {/* (making sure most of the ingredients within it are visible) */}
+                {"\n"}
+                {"\n"}
+                {/* Another option is to scan the barcode if one is available.
               {"\n"}
               {"\n"} */}
-              After scanning, you will be able to view the macros of your food
-              in the results page.
-            </Text>
-          </View>
-          <View style={styles.grantContainer}>
-            <TouchableOpacity
-              style={styles.grantButton}
-              onPress={handleCameraLaunch}
-            >
-              <Text style={styles.grantText}>Continue</Text>
-            </TouchableOpacity>
-          </View>
+                After scanning, you will be able to view the macros of your food
+                in the results page.
+              </Text>
+            </View>
+            <View style={styles.grantContainer}>
+              <TouchableOpacity
+                style={styles.grantButton}
+                onPress={handleCameraLaunch}
+              >
+                <Text style={styles.grantText}>Continue</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
         </SafeAreaView>
       </View>
     );
@@ -220,6 +223,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 20,
   },
+  scrollView: {},
   noteContainer: {
     marginLeft: "5%",
     marginRight: "5%",
@@ -229,6 +233,7 @@ const styles = StyleSheet.create({
     fontSize: 36,
     fontFamily: "SFProRounded-Heavy",
     color: "#fff",
+    alignSelf: "center",
     marginBottom: 20,
     marginTop: 10,
   },
@@ -236,6 +241,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: "SFProText-Light",
     color: "#fff",
+    marginBottom: "10%",
   },
   grantContainer: {
     flex: 1,
