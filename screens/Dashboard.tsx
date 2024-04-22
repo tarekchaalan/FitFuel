@@ -23,6 +23,7 @@ import {
   getFirestore,
   increment,
 } from "firebase/firestore";
+import { useTheme } from "./settings/themes/ThemeContext";
 
 const db = getFirestore();
 const auth = getAuth();
@@ -302,8 +303,20 @@ const WorkoutItem = ({
     >
       <Image source={placeholderImge} style={styles.workoutImage} />
       <View style={styles.overlay}>
-        <Text style={styles.workoutTitle}>{title}</Text>
-        <Text style={styles.workoutMuscles}>{muscles}</Text>
+        <Text
+          style={styles.workoutTitle}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
+          {title}
+        </Text>
+        <Text
+          style={styles.workoutMuscles}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
+          {muscles}
+        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -319,8 +332,16 @@ const MealItem = ({ title, description, imageSource }: MealItemProps) => (
   <TouchableOpacity style={styles.mealItem}>
     <Image style={styles.mealImage} source={imageSource} />
     <View style={styles.overlay}>
-      <Text style={styles.mealTitle}>{title}</Text>
-      <Text style={styles.mealDescription}>{description}</Text>
+      <Text style={styles.mealTitle} numberOfLines={1} ellipsizeMode="tail">
+        {title}
+      </Text>
+      <Text
+        style={styles.mealDescription}
+        numberOfLines={1}
+        ellipsizeMode="tail"
+      >
+        {description}
+      </Text>
     </View>
   </TouchableOpacity>
 );
@@ -451,7 +472,7 @@ const styles = StyleSheet.create({
     padding: 10,
     marginTop: 110,
     borderRadius: 10,
-    justifyContent: "flex-end",
+    justifyContent: "center",
     alignItems: "center",
   },
   workoutContainer: {
