@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
   headerTextContainer: {},
   ItemContainer: {},
   pageTitle: {
-    fontSize: 20,
+    fontSize: 36,
     marginTop: "6%",
     alignSelf: "center",
     fontFamily: "SFProRounded-Heavy",
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     fontFamily: "SFProText-Light",
     color: "#fff",
-    marginBottom: "10%",
+    marginBottom: "5%",
   },
   boldText: {
     fontFamily: "SFProText-Heavy",
