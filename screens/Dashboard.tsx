@@ -23,7 +23,6 @@ import {
   getFirestore,
   increment,
 } from "firebase/firestore";
-import { useTheme } from "./settings/themes/ThemeContext";
 
 const db = getFirestore();
 const auth = getAuth();
