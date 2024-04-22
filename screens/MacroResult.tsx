@@ -163,7 +163,9 @@ const MacroResult = ({ navigation }: { navigation: any }) => {
                 style={styles.scanImage}
                 resizeMode="contain"
               />
-              <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
+              >
                 <View
                   style={{
                     paddingHorizontal: 6,
@@ -177,7 +179,13 @@ const MacroResult = ({ navigation }: { navigation: any }) => {
                     {scan.nutriscore_grade.toUpperCase()}
                   </Text>
                 </View>
-                <Text style={styles.scanText}>{scan.name}</Text>
+                <Text
+                  style={styles.scanText}
+                  numberOfLines={2}
+                  ellipsizeMode="tail"
+                >
+                  {scan.name}
+                </Text>
               </View>
             </TouchableOpacity>
           </Swipeable>
@@ -222,8 +230,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderBottomColor: "#ffffff33",
     borderBottomWidth: 1,
-    paddingVertical: 10, // Adjust as needed for spacing
+    paddingVertical: 10,
     height: 150,
+    paddingRight: 10,
   },
   scanImage: {
     height: 135,
@@ -234,6 +243,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontFamily: "SFProRounded-Heavy",
     fontSize: 18,
+    flex: 1,
   },
   deleteBox: {
     backgroundColor: "red",
