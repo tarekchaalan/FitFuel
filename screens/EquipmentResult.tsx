@@ -25,7 +25,9 @@ import {
   deleteDoc,
   orderBy,
 } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 
+const auth = getAuth();
 const db = getFirestore();
 
 interface EquipmentScan {
@@ -51,8 +53,9 @@ const EquipmentResult = ({ navigation }: { navigation: any }) => {
   }>({ id: null, class: "" });
 
   useEffect(() => {
-    const fetchGyms = async () => {
-      const gymsRef = collection(db, "Gyms");
+    const user = auth.currentUser;
+    if (user) {
+      const gymsRef = collection(db, "Gyms", user.uid, "UserGyms");
       const q = query(gymsRef, orderBy("created", "desc"));
       const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const fetchedGyms = querySnapshot.docs.map((doc) => doc.id);
@@ -62,37 +65,61 @@ const EquipmentResult = ({ navigation }: { navigation: any }) => {
         }
       });
       return () => unsubscribe();
-    };
-
-    fetchGyms();
-  }, []);
+    } else {
+      console.log("User not authenticated");
+    }
+  }, [auth.currentUser]); // Dependency on currentUser ensures updates trigger re-fetch
 
   useEffect(() => {
-    if (selectedGym) {
-      const unsubscribe = onSnapshot(
-        query(collection(db, "Gyms", selectedGym, "Scans")),
-        (snapshot) => {
-          setEquipmentScans(
-            snapshot.docs.map((doc) => ({
-              id: doc.id,
-              ...(doc.data() as { class: string; imageUrl: string }),
-            }))
-          );
-        }
+    const user = auth.currentUser;
+    if (user && selectedGym) {
+      const scansRef = collection(
+        db,
+        "Gyms",
+        user.uid,
+        "UserGyms",
+        selectedGym,
+        "Scans"
       );
+      const unsubscribe = onSnapshot(scansRef, (snapshot) => {
+        setEquipmentScans(
+          snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...(doc.data() as { class: string; imageUrl: string }),
+          }))
+        );
+      });
       return () => unsubscribe();
     }
-  }, [selectedGym]);
+  }, [selectedGym, auth.currentUser]); // React to changes in selectedGym and currentUser
 
   const handleDelete = async (id: string) => {
-    await deleteDoc(doc(db, "Gyms", selectedGym, "Scans", id));
+    const user = auth.currentUser;
+    if (user) {
+      await deleteDoc(
+        doc(db, "Gyms", user.uid, "UserGyms", selectedGym, "Scans", id)
+      );
+    } else {
+      console.log("User not authenticated");
+    }
   };
 
   const handleEdit = async () => {
-    if (currentEdit.id) {
-      const scanDoc = doc(db, "Gyms", selectedGym, "Scans", currentEdit.id);
+    const user = auth.currentUser;
+    if (user && currentEdit.id) {
+      const scanDoc = doc(
+        db,
+        "Gyms",
+        user.uid,
+        "UserGyms",
+        selectedGym,
+        "Scans",
+        currentEdit.id
+      );
       await updateDoc(scanDoc, { class: currentEdit.class });
       setEditMode(false);
+    } else {
+      console.log("User not authenticated or edit details missing");
     }
   };
 
