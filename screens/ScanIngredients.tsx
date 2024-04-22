@@ -10,6 +10,7 @@ import {
   StatusBar,
   Alert,
 } from "react-native";
+import { ScrollView } from "react-native-gesture-handler";
 import {
   Camera,
   CameraType,
@@ -117,37 +118,39 @@ const ScanIngredients = ({ navigation }: { navigation: any }) => {
               <ResultsIcon />
             </TouchableOpacity>
           </View>
-          <View style={styles.noteContainer}>
-            <Text style={styles.noteTitle}>Instructions (TODO)</Text>
-            <Text style={styles.noteText}>
-              To tailor-make your meal plans, simply snap or upload pictures of
-              the items in your{" "}
-              <Text style={styles.noteTextDecorated}>
-                Fridge / Cabinet / Drawers
+          <Text style={styles.noteTitle}>Instructions (TODO)</Text>
+          <ScrollView style={styles.scrollView}>
+            <View style={styles.noteContainer}>
+              <Text style={styles.noteText}>
+                To tailor-make your meal plans, simply snap or upload pictures
+                of the items in your{" "}
+                <Text style={styles.noteTextDecorated}>
+                  Fridge / Cabinet / Drawers
+                </Text>
+                . This helps our system offer you customized recipes.
+                {"\n"}
+                {"\n"}
+                <Text style={styles.noteTextDecorated}>
+                  Prefer not to scan?
+                </Text>{" "}
+                No worries, we can suggest some basic and easy-to-make recipes,
+                though you might not have all of the required ingredients.
+                {"\n"}
+                {"\n"}
+                Keep your inventory updated, especially after grocery shopping,
+                to ensure our recommendations stay fresh and relevant. You can
+                rescan your items or manually add new ones to the list.
               </Text>
-              . This helps our system offer you customized recipes.
-              {"\n"}
-              {"\n"}
-              <Text style={styles.noteTextDecorated}>
-                Prefer not to scan?
-              </Text>{" "}
-              No worries, we can suggest some basic and easy-to-make recipes,
-              though you might not have all of the required ingredients.
-              {"\n"}
-              {"\n"}
-              Keep your inventory updated, especially after grocery shopping, to
-              ensure our recommendations stay fresh and relevant. You can rescan
-              your items or manually add new ones to the list.
-            </Text>
-          </View>
-          <View style={styles.grantContainer}>
-            <TouchableOpacity
-              style={styles.grantButton}
-              onPress={handleCameraLaunch}
-            >
-              <Text style={styles.grantText}>Continue</Text>
-            </TouchableOpacity>
-          </View>
+            </View>
+            <View style={styles.grantContainer}>
+              <TouchableOpacity
+                style={styles.grantButton}
+                onPress={handleCameraLaunch}
+              >
+                <Text style={styles.grantText}>Continue</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
         </SafeAreaView>
       </View>
     );
@@ -216,6 +219,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 20,
   },
+  scrollView: {},
   noteContainer: {
     marginLeft: "5%",
     marginRight: "5%",
@@ -225,6 +229,7 @@ const styles = StyleSheet.create({
     fontSize: 36,
     fontFamily: "SFProRounded-Heavy",
     color: "#fff",
+    alignSelf: "center",
     marginBottom: 20,
     marginTop: 10,
   },
@@ -232,6 +237,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: "SFProText-Light",
     color: "#fff",
+    marginBottom: "10%",
   },
   noteTextDecorated: {
     color: "#9A2CE8",
