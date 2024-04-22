@@ -5,6 +5,7 @@ import * as SplashScreen from "expo-splash-screen";
 import * as Font from "expo-font";
 import { auth } from "./firebase";
 import { UserProvider } from "./UserContext";
+import { ThemeProvider } from "./screens/settings/themes/ThemeContext";
 
 // Import all screens
 import Login from "./screens/Login";
@@ -24,7 +25,8 @@ import BarcodeResults from "./screens/BarcodeResults";
 import MacroResult from "./screens/MacroResult";
 import Preferences from "./screens/Preferences";
 import Profile from "./screens/Profile";
-import Settings from "./screens/Settings";
+import Settings from "./screens/settings/Settings";
+import ThemeSettings from "./screens/settings/themes/ThemeSettings";
 
 const Stack = createStackNavigator();
 
@@ -81,50 +83,56 @@ function App() {
   }
 
   return (
-    <UserProvider>
-      <NavigationContainer>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-          {user ? (
-            // Main App Screens
-            <>
-              <Stack.Screen name="Dashboard" component={Dashboard} />
-              <Stack.Screen name="Workouts" component={Workouts} />
-              <Stack.Screen name="ScanEquipment" component={ScanEquipment} />
-              <Stack.Screen
-                name="EquipmentResult"
-                component={EquipmentResult}
-              />
-              <Stack.Screen
-                name="WorkoutSchedule"
-                component={WorkoutSchedule}
-              />
-              <Stack.Screen name="Meals" component={Meals} />
-              <Stack.Screen name="MealPlan" component={MealPlan} />
-              <Stack.Screen
-                name="ScanIngredients"
-                component={ScanIngredients}
-              />
-              <Stack.Screen
-                name="IngredientsResult"
-                component={IngredientsResult}
-              />
-              <Stack.Screen name="MacroChecker" component={MacroChecker} />
-              <Stack.Screen name="BarcodeResults" component={BarcodeResults} />
-              <Stack.Screen name="MacroResult" component={MacroResult} />
-              <Stack.Screen name="Preferences" component={Preferences} />
-              <Stack.Screen name="Profile" component={Profile} />
-              <Stack.Screen name="Settings" component={Settings} />
-            </>
-          ) : (
-            <>
-              <Stack.Screen name="Login" component={Login} />
-              <Stack.Screen name="Signup" component={Signup} />
-              <Stack.Screen name="Forgot" component={Forgot} />
-            </>
-          )}
-        </Stack.Navigator>
-      </NavigationContainer>
-    </UserProvider>
+    <ThemeProvider>
+      <UserProvider>
+        <NavigationContainer>
+          <Stack.Navigator screenOptions={{ headerShown: false }}>
+            {user ? (
+              // Main App Screens
+              <>
+                <Stack.Screen name="Dashboard" component={Dashboard} />
+                <Stack.Screen name="Workouts" component={Workouts} />
+                <Stack.Screen name="ScanEquipment" component={ScanEquipment} />
+                <Stack.Screen
+                  name="EquipmentResult"
+                  component={EquipmentResult}
+                />
+                <Stack.Screen
+                  name="WorkoutSchedule"
+                  component={WorkoutSchedule}
+                />
+                <Stack.Screen name="Meals" component={Meals} />
+                <Stack.Screen name="MealPlan" component={MealPlan} />
+                <Stack.Screen
+                  name="ScanIngredients"
+                  component={ScanIngredients}
+                />
+                <Stack.Screen
+                  name="IngredientsResult"
+                  component={IngredientsResult}
+                />
+                <Stack.Screen name="MacroChecker" component={MacroChecker} />
+                <Stack.Screen
+                  name="BarcodeResults"
+                  component={BarcodeResults}
+                />
+                <Stack.Screen name="MacroResult" component={MacroResult} />
+                <Stack.Screen name="Preferences" component={Preferences} />
+                <Stack.Screen name="Profile" component={Profile} />
+                <Stack.Screen name="Settings" component={Settings} />
+                <Stack.Screen name="ThemeSettings" component={ThemeSettings} />
+              </>
+            ) : (
+              <>
+                <Stack.Screen name="Login" component={Login} />
+                <Stack.Screen name="Signup" component={Signup} />
+                <Stack.Screen name="Forgot" component={Forgot} />
+              </>
+            )}
+          </Stack.Navigator>
+        </NavigationContainer>
+      </UserProvider>
+    </ThemeProvider>
   );
 }
 
