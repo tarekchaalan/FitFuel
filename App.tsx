@@ -18,7 +18,7 @@ import EquipmentResult from "./screens/EquipmentResult";
 import WorkoutSchedule from "./screens/WorkoutSchedule";
 import Meals from "./screens/Meals";
 import MealPlan from "./screens/MealPlan";
-import ScanIngredients from "./screens/ScanIngredients";
+import InputIngredients from "./screens/InputIngredients";
 import IngredientsResult from "./screens/IngredientsResult";
 import MacroChecker from "./screens/MacroChecker";
 import BarcodeResults from "./screens/BarcodeResults";
@@ -104,8 +104,8 @@ function App() {
                 <Stack.Screen name="Meals" component={Meals} />
                 <Stack.Screen name="MealPlan" component={MealPlan} />
                 <Stack.Screen
-                  name="ScanIngredients"
-                  component={ScanIngredients}
+                  name="InputIngredients"
+                  component={InputIngredients}
                 />
                 <Stack.Screen
                   name="IngredientsResult"
