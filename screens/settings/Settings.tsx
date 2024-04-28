@@ -115,6 +115,7 @@ const styles = StyleSheet.create({
   },
   signOutButton: {
     height: 50,
+    marginTop: 20,
     backgroundColor: "red",
     justifyContent: "center",
     alignItems: "center",
