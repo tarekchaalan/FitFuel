@@ -16,9 +16,31 @@ import { doc, setDoc, getDoc } from "firebase/firestore";
 import Slider from "@react-native-community/slider";
 import { BackIcon } from "../svgs";
 import { StackNavigationProp } from "@react-navigation/stack";
+import { createMealPlan } from "./CreateMealPlan";
 
 interface PreferencesProps {
   navigation: StackNavigationProp<any, any>;
+}
+
+interface UserPreferences {
+  query: string;
+  age: number;
+  gender: "Male" | "Female" | "Other";
+  currentWeight: number;
+  targetWeight: number;
+  currentPhysique: "Lean" | "Balanced" | "Fuller";
+  targetPhysique: "Lean" | "Balanced" | "Muscular";
+  height: number;
+  dietaryRestrictions: string[];
+  foodAllergies: string[];
+  preferredFoods: string[];
+  dislikedFoods: string[];
+  workoutFrequencyPerWeek: number;
+  workoutDuration: number;
+  fitnessLevel: string;
+  activityLevel: "Sedentary" | "Light" | "Moderate" | "Vigorous";
+  intolerances: string[];
+  typesOfWorkouts: string[];
 }
 
 interface PreferencesState {
@@ -31,12 +53,15 @@ interface PreferencesState {
   height: number;
   dietaryRestrictions: string[];
   foodAllergies: string[];
+  preferredFoods: string[];
   dislikedFoods: string[];
   workoutFrequencyPerWeek: number;
   workoutDuration: number;
   fitnessLevel: string;
+  activityLevel: string;
   intolerances: string[];
   typesOfWorkouts: string[];
+  query: string;
 }
 
 interface SelectionTagsProps {
@@ -61,12 +86,15 @@ const Preferences = ({ navigation }: { navigation: any }) => {
     height: 53,
     dietaryRestrictions: [],
     foodAllergies: [],
+    preferredFoods: [],
     dislikedFoods: [],
     workoutFrequencyPerWeek: 1,
     workoutDuration: 30,
     fitnessLevel: "",
+    activityLevel: "",
     intolerances: [],
     typesOfWorkouts: [],
+    query: "",
   });
 
   // Fetch user preferences from Firestore
@@ -78,23 +106,33 @@ const Preferences = ({ navigation }: { navigation: any }) => {
         try {
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
-            const userPreferences = docSnap.data(); // Directly accessing the preferences data
+            const data = docSnap.data();
+            const validGenders: Array<"Male" | "Female" | "Other"> = [
+              "Male",
+              "Female",
+              "Other",
+            ];
+            const gender = validGenders.includes(data.gender)
+              ? data.gender
+              : "Other";
+
+            // Ensure the type here by casting or validating
             setPreferences((prevState) => ({
               ...prevState,
-              ...userPreferences,
-              dietaryRestrictions: userPreferences.dietaryRestrictions ?? [],
-              foodAllergies: userPreferences.foodAllergies ?? [],
-              dislikedFoods: userPreferences.dislikedFoods ?? [],
-              workoutFrequencyPerWeek:
-                userPreferences.workoutFrequencyPerWeek ?? 0,
-              workoutDuration: userPreferences.workoutDuration ?? 0,
-              fitnessLevel: userPreferences.fitnessLevel ?? "",
+              ...data,
+              gender: gender as "Male" | "Female" | "Other",
+              dietaryRestrictions: data.dietaryRestrictions ?? [],
+              foodAllergies: data.foodAllergies ?? [],
+              preferredFoods: data.preferredFoods ?? [],
+              dislikedFoods: data.dislikedFoods ?? [],
+              workoutFrequencyPerWeek: data.workoutFrequencyPerWeek ?? 0,
+              workoutDuration: data.workoutDuration ?? 0,
+              fitnessLevel: data.fitnessLevel ?? "",
+              activityLevel: data.activityLevel ?? "",
             }));
-            setSelectedIntolerances(userPreferences.intolerances || []);
-            setSelectedDietaryRestrictions(
-              userPreferences.dietaryRestrictions || []
-            );
-            setSelectedTypesofWorkouts(userPreferences.typesOfWorkouts || []);
+            setSelectedIntolerances(data.intolerances || []);
+            setSelectedDietaryRestrictions(data.dietaryRestrictions || []);
+            setSelectedTypesofWorkouts(data.typesOfWorkouts || []);
           } else {
             console.log("No user preferences found.");
           }
@@ -151,28 +189,49 @@ const Preferences = ({ navigation }: { navigation: any }) => {
   const savePreferencesToFirestore = async () => {
     const user = auth.currentUser;
     if (user) {
-      // Ensure the latest selections are included in the preferences object
-      const updatedPreferences = {
+      const validGenders = ["Male", "Female", "Other"]; // Allowed gender types
+      const gender = preferences.gender;
+      const genderIsValid = validGenders.includes(gender); // Validate gender
+
+      const updatedPreferences: UserPreferences = {
         ...preferences,
+        gender: genderIsValid
+          ? (gender as "Male" | "Female" | "Other")
+          : "Other", // Ensuring type safety
         dietaryRestrictions: selectedDietaryRestrictions,
         intolerances: selectedIntolerances,
         typesOfWorkouts: selectedTypesofWorkouts,
+        activityLevel: preferences.activityLevel as
+          | "Sedentary"
+          | "Light"
+          | "Moderate"
+          | "Vigorous",
+        currentPhysique: preferences.currentPhysique as
+          | "Lean"
+          | "Balanced"
+          | "Fuller",
+        targetPhysique: preferences.targetPhysique as
+          | "Lean"
+          | "Balanced"
+          | "Muscular",
+        query: preferences.query, // Ensuring query is included
       };
 
-      // Use the "preferences" collection and the user's UID for the document ID
-      await setDoc(
-        doc(firestore, "preferences", user.uid),
-        updatedPreferences,
-        {
-          merge: true,
-        }
-      )
-        .then(() => {
-          Alert.alert("Success", "Preferences saved successfully", [
-            { text: "OK", onPress: () => navigation.navigate("Dashboard") },
-          ]);
-        })
-        .catch((error) => console.error("Error saving to Firestore:", error));
+      try {
+        await setDoc(
+          doc(firestore, "preferences", user.uid),
+          updatedPreferences,
+          { merge: true }
+        );
+        Alert.alert("Success", "Preferences saved successfully", [
+          { text: "OK", onPress: () => navigation.navigate("Dashboard") },
+        ]);
+        // Passing user.uid as a second argument to createMealPlan
+        await createMealPlan(updatedPreferences, user.uid);
+      } catch (error) {
+        console.error("Error saving to Firestore:", error);
+        Alert.alert("Error", "Failed to save preferences.");
+      }
     } else {
       Alert.alert("Error", "No authenticated user found.");
     }
@@ -237,7 +296,6 @@ const Preferences = ({ navigation }: { navigation: any }) => {
     selected: boolean;
     onPress: () => void;
     fontSize?: number;
-    width?: string; // Specify that width should only be a string
   }
 
   const OptionBox: React.FC<OptionBoxProps> = ({
@@ -245,7 +303,6 @@ const Preferences = ({ navigation }: { navigation: any }) => {
     selected,
     onPress,
     fontSize = 16,
-    width = "30%",
   }) => {
     const containerStyle: ViewStyle = {
       borderWidth: 2,
@@ -256,7 +313,6 @@ const Preferences = ({ navigation }: { navigation: any }) => {
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: selected ? "#9A2CE8" : "transparent",
-      width: "30%",
     };
 
     return (
@@ -402,7 +458,7 @@ const Preferences = ({ navigation }: { navigation: any }) => {
                   label={gender}
                   selected={preferences.gender === gender}
                   onPress={() => handleInputChange("gender", gender)}
-                  fontSize={13}
+                  fontSize={16}
                 />
               ))}
             </View>
@@ -423,7 +479,7 @@ const Preferences = ({ navigation }: { navigation: any }) => {
                   onPress={() =>
                     handleInputChange("currentPhysique", currentPhysique)
                   }
-                  fontSize={14}
+                  fontSize={16}
                 />
               ))}
             </View>
@@ -440,7 +496,7 @@ const Preferences = ({ navigation }: { navigation: any }) => {
                   onPress={() =>
                     handleInputChange("targetPhysique", targetPhysique)
                   }
-                  fontSize={13}
+                  fontSize={16}
                 />
               ))}
             </View>
@@ -509,6 +565,14 @@ const Preferences = ({ navigation }: { navigation: any }) => {
           </View>
 
           <View style={styles.section}>
+            <View style={styles.preferredContainer}>
+              <Text style={styles.label}>Preferred Foods</Text>
+              <Text style={styles.subLabel}>(eg. Chicken, Pasta, etc)</Text>
+            </View>
+            <TagInput field="preferredFoods" />
+          </View>
+
+          <View style={styles.section}>
             <Text style={styles.label}>Disliked Foods</Text>
             <TagInput field="dislikedFoods" />
           </View>
@@ -571,6 +635,21 @@ const Preferences = ({ navigation }: { navigation: any }) => {
           </View>
 
           <View style={styles.section}>
+            <Text style={styles.label}>Activity Level</Text>
+            <View style={styles.multioptions}>
+              {["Sedentary", "Light", "Moderate", "Vigorous"].map((level) => (
+                <OptionBox
+                  key={level}
+                  label={level}
+                  selected={preferences.activityLevel === level}
+                  onPress={() => handleInputChange("activityLevel", level)}
+                  fontSize={10}
+                />
+              ))}
+            </View>
+          </View>
+
+          <View style={styles.section}>
             <Text style={styles.label}>Fitness Level</Text>
             <View style={styles.multioptions}>
               {["Beginner", "Intermediate", "Expert"].map((level) => (
@@ -579,7 +658,7 @@ const Preferences = ({ navigation }: { navigation: any }) => {
                   label={level}
                   selected={preferences.fitnessLevel === level}
                   onPress={() => handleInputChange("fitnessLevel", level)}
-                  fontSize={11}
+                  fontSize={13}
                 />
               ))}
             </View>
@@ -636,10 +715,21 @@ const styles = StyleSheet.create({
     color: "#FFF",
     fontWeight: "bold",
   },
+  preferredContainer: {
+    flexDirection: "row",
+    justifyContent: "flex-start",
+  },
   label: {
     fontSize: 18,
     color: "#FFF",
     marginBottom: "3%",
+  },
+  subLabel: {
+    fontSize: 12,
+    fontFamily: "SFProRounded-Light",
+    color: "#FFF",
+    marginLeft: "3%",
+    marginTop: "1%",
   },
   slider: {
     marginLeft: "3%",

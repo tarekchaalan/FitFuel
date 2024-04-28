@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -6,13 +6,24 @@ import {
   Image,
   TouchableOpacity,
   ScrollView,
-  Dimensions,
   SafeAreaView,
   StatusBar,
+  FlatList,
 } from "react-native";
+import axios from "axios";
+import { auth, firestore } from "../firebase";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 import { BackIcon } from "../svgs";
 
+interface Meal {
+  title?: string;
+  image?: string;
+  id?: string;
+}
+
 const MealPlan = ({ navigation }: { navigation: any }) => {
+  const [meals, setMeals] = useState<Meal[]>([]);
+
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
@@ -20,14 +31,28 @@ const MealPlan = ({ navigation }: { navigation: any }) => {
         <View style={styles.BackContainer}>
           <TouchableOpacity
             style={styles.BackIcon}
-            onPress={() => navigation.navigate("Meals")}
+            onPress={() => navigation.goBack()}
           >
             <BackIcon />
           </TouchableOpacity>
         </View>
-        <View>
-          <Text style={styles.pageHeader}>Meal Plan (TODO)</Text>
-        </View>
+        <Text style={styles.pageHeader}>Meal Plan</Text>
+        {/* Textbox for user to input meal plan */}
+        <View></View>
+        <FlatList
+          data={meals}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              onPress={() => alert("Display recipe and nutritional info here.")}
+            >
+              <Text style={styles.mealItem}>{item.title}</Text>
+              <Image source={{ uri: item.image }} style={styles.mealImage} />
+            </TouchableOpacity>
+          )}
+          keyExtractor={(item, index) =>
+            item.id ? item.id.toString() : index.toString()
+          }
+        />
       </SafeAreaView>
     </View>
   );
@@ -53,6 +78,15 @@ const styles = StyleSheet.create({
     fontFamily: "SFProRounded-Heavy",
     color: "#fff",
     alignSelf: "center",
+  },
+  mealItem: {
+    padding: 10,
+    fontSize: 16,
+    color: "#000",
+  },
+  mealImage: {
+    width: 100,
+    height: 100,
   },
 });
 

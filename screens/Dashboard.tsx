@@ -22,6 +22,7 @@ import {
   getDoc,
   getFirestore,
   increment,
+  onSnapshot,
 } from "firebase/firestore";
 
 const db = getFirestore();
@@ -49,6 +50,68 @@ const Dashboard = ({ navigation }: { navigation: any }) => {
   const [monthlyChallengeHours, setMonthlyChallengeHours] = useState(0);
   const [totalWorkoutHours, setTotalWorkoutHours] = useState(0);
   const [progressPercentage, setProgressPercentage] = useState(0);
+  const [meals, setMeals] = useState({
+    breakfast: {
+      title: "Loading...",
+      image: require("../assets/images/placeholder.png"),
+    },
+    lunch: {
+      title: "Loading...",
+      image: require("../assets/images/placeholder.png"),
+    },
+    dinner: {
+      title: "Loading...",
+      image: require("../assets/images/placeholder.png"),
+    },
+  });
+
+  useEffect(() => {
+    if (!auth.currentUser) {
+      console.log("No user logged in.");
+      return;
+    }
+
+    const unsubscribe = onSnapshot(
+      doc(db, "mealDetails", auth.currentUser.uid),
+      (doc) => {
+        if (!doc.exists()) {
+          console.log("No meal data found.");
+          return;
+        }
+
+        const mealData = doc.data();
+        setMeals({
+          breakfast: {
+            title: mealData.breakfast.title,
+            image:
+              mealData.breakfast.image ||
+              require("../assets/images/placeholder.png"),
+          },
+          lunch: {
+            title: mealData.lunch.title,
+            image:
+              mealData.lunch.image ||
+              require("../assets/images/placeholder.png"),
+          },
+          dinner: {
+            title: mealData.dinner.title,
+            image:
+              mealData.dinner.image ||
+              require("../assets/images/placeholder.png"),
+          },
+        });
+      }
+    );
+
+    return () => unsubscribe(); // Cleanup function to unsubscribe when the component unmounts or dependencies change
+  }, [auth.currentUser]); // Dependency on currentUser to re-invoke when it changes
+
+  useEffect(() => {
+    console.log(
+      "Image URI using meals (updated state):",
+      meals.breakfast.image
+    );
+  }, [meals]);
 
   const fetchUserData = async () => {
     const user = auth.currentUser;
@@ -112,6 +175,7 @@ const Dashboard = ({ navigation }: { navigation: any }) => {
         currentUser.photoURL ||
         require("../assets/images/profile-placeholder.jpg");
       setProfilePicture(pictureSource);
+      console.log("Profile Picture URI:", pictureSource);
       fetchUserData();
     }
   }, [currentUser]);
@@ -233,7 +297,7 @@ const Dashboard = ({ navigation }: { navigation: any }) => {
           </View>
 
           <View style={styles.mealContainer}>
-            <Text style={styles.mealHeader}>This Week's Meal Plan</Text>
+            <Text style={styles.mealHeader}>Current Meal Plan</Text>
             <ScrollView
               horizontal
               style={styles.mealItemsContainer}
@@ -241,18 +305,18 @@ const Dashboard = ({ navigation }: { navigation: any }) => {
             >
               <MealItem
                 title="Breakfast"
-                description="Breakfast Meal Name"
-                imageSource={placeholderImge}
+                description={meals.breakfast.title}
+                imageSource={{ uri: meals.breakfast.image }}
               />
               <MealItem
                 title="Lunch"
-                description="Lunch Meal Name"
-                imageSource={placeholderImge}
+                description={meals.lunch.title}
+                imageSource={{ uri: meals.lunch.image }}
               />
               <MealItem
                 title="Dinner"
-                description="Dinner Meal Name"
-                imageSource={placeholderImge}
+                description={meals.dinner.title}
+                imageSource={{ uri: meals.dinner.image }}
               />
             </ScrollView>
           </View>
@@ -324,26 +388,35 @@ const WorkoutItem = ({
 interface MealItemProps {
   title: string;
   description: string;
-  imageSource: ImageSourcePropType;
+  imageSource: any;
 }
 
-const MealItem = ({ title, description, imageSource }: MealItemProps) => (
-  <TouchableOpacity style={styles.mealItem}>
-    <Image style={styles.mealImage} source={imageSource} />
-    <View style={styles.overlay}>
-      <Text style={styles.mealTitle} numberOfLines={1} ellipsizeMode="tail">
-        {title}
-      </Text>
-      <Text
-        style={styles.mealDescription}
-        numberOfLines={1}
-        ellipsizeMode="tail"
-      >
-        {description}
-      </Text>
-    </View>
-  </TouchableOpacity>
-);
+const MealItem = ({ title, description, imageSource }: MealItemProps) => {
+  const validImageSource =
+    imageSource &&
+    typeof imageSource.uri === "string" &&
+    imageSource.uri.startsWith("http")
+      ? { uri: imageSource.uri }
+      : placeholderImge;
+
+  return (
+    <TouchableOpacity style={styles.mealItem}>
+      <Image source={validImageSource} style={styles.mealImage} />
+      <View style={styles.overlay}>
+        <Text style={styles.mealTitle} numberOfLines={1} ellipsizeMode="tail">
+          {title}
+        </Text>
+        <Text
+          style={styles.mealDescription}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
+          {description}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+};
 
 export const HomeIcon = () => (
   <Svg height="28" width="28" viewBox="0 0 56 56">
@@ -492,7 +565,7 @@ const styles = StyleSheet.create({
   logWorkoutButton: {
     backgroundColor: "#9A2CE8",
     borderRadius: 20,
-    paddingVertical: 10,
+    paddingVertical: "2.5%",
     paddingHorizontal: 15,
   },
   logWorkoutButtonText: {
