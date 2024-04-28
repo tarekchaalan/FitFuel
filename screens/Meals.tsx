@@ -19,7 +19,7 @@ type RootStackParamList = {
   Dashboard: undefined;
   Workouts: undefined;
   Profile: undefined;
-  ScanIngredients: undefined;
+  InputIngredients: undefined;
   MealPlan: undefined;
   MacroChecker: undefined;
 };
@@ -57,11 +57,11 @@ const Meals = ({ navigation }: MealProps) => {
           </View>
           <View style={styles.ItemContainer}>
             <ClickableItem
-              title="Scan Ingredients"
+              title="Input Ingredients"
               description="Let us create your customized meal plan"
               imageSource={mealimage}
               navigation={navigation}
-              routeName="ScanIngredients"
+              routeName="InputIngredients"
             />
             <ClickableItem
               title="Macro Checker"
