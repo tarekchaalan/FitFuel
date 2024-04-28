@@ -176,7 +176,7 @@ const MacroResult = ({ navigation }: { navigation: any }) => {
                   }}
                 >
                   <Text style={{ color: "#000", fontWeight: "bold" }}>
-                    {scan.nutriscore_grade.toUpperCase()}
+                    {scan.nutriscore_grade}
                   </Text>
                 </View>
                 <Text
