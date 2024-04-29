@@ -22,7 +22,7 @@ interface PreferencesProps {
   navigation: StackNavigationProp<any, any>;
 }
 
-interface UserPreferences {
+export interface UserPreferences {
   query: string;
   age: number;
   gender: "Male" | "Female" | "Other";
@@ -61,7 +61,6 @@ interface PreferencesState {
   activityLevel: string;
   intolerances: string[];
   typesOfWorkouts: string[];
-  query: string;
 }
 
 interface SelectionTagsProps {
@@ -94,7 +93,6 @@ const Preferences = ({ navigation }: { navigation: any }) => {
     activityLevel: "",
     intolerances: [],
     typesOfWorkouts: [],
-    query: "",
   });
 
   // Fetch user preferences from Firestore
@@ -214,7 +212,7 @@ const Preferences = ({ navigation }: { navigation: any }) => {
           | "Lean"
           | "Balanced"
           | "Muscular",
-        query: preferences.query, // Ensuring query is included
+        query: "", // Ensuring query is included
       };
 
       try {
@@ -226,6 +224,7 @@ const Preferences = ({ navigation }: { navigation: any }) => {
         Alert.alert("Success", "Preferences saved successfully", [
           { text: "OK", onPress: () => navigation.navigate("Dashboard") },
         ]);
+        console.log("Preferences saved successfully");
         // Passing user.uid as a second argument to createMealPlan
         await createMealPlan(updatedPreferences, user.uid);
       } catch (error) {
