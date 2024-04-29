@@ -8,12 +8,21 @@ import {
   StatusBar,
   TextInput,
   FlatList,
+  Animated,
   Image,
   Keyboard,
   ActivityIndicator,
   ScrollView,
 } from "react-native";
-import { getFirestore, collection, getDocs, addDoc } from "firebase/firestore";
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  addDoc,
+  deleteDoc,
+  doc,
+} from "firebase/firestore";
+import { Swipeable } from "react-native-gesture-handler";
 import { getAuth } from "firebase/auth";
 import axios from "axios";
 import { BackIcon } from "../svgs";
@@ -22,6 +31,7 @@ const db = getFirestore();
 const auth = getAuth();
 
 interface Ingredient {
+  id: string;
   name: string;
   image: string;
 }
@@ -119,6 +129,37 @@ const InputIngredients = ({ navigation }: { navigation: any }) => {
     }
   };
 
+  const handleDelete = async (ingredientId: string) => {
+    const user = auth.currentUser;
+    if (user) {
+      const ingredientDoc = doc(
+        db,
+        "IngredientsList",
+        user.uid,
+        "Ingredients",
+        ingredientId
+      );
+      await deleteDoc(ingredientDoc);
+      fetchIngredients(user.uid);
+    }
+  };
+
+  const renderRightActions = (progress: any, dragX: any, onPress: any) => {
+    const opacity = dragX.interpolate({
+      inputRange: [-100, 0],
+      outputRange: [1, 0],
+      extrapolate: "clamp",
+    });
+
+    return (
+      <Animated.View style={[styles.deleteBox, { opacity }]}>
+        <TouchableOpacity onPress={onPress}>
+          <Text style={styles.deleteText}>Delete</Text>
+        </TouchableOpacity>
+      </Animated.View>
+    );
+  };
+
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
@@ -132,6 +173,10 @@ const InputIngredients = ({ navigation }: { navigation: any }) => {
           </TouchableOpacity>
         </View>
         <Text style={styles.pageHeader}>Input Ingredients</Text>
+        <Text style={styles.pageSubHeader}>
+          If you want recipes that are more tailored to your goals, do not input
+          any ingredients
+        </Text>
         <TextInput
           style={
             isSuggestionsOpen ? styles.searchbarOpen : styles.searchbarClosed
@@ -169,16 +214,26 @@ const InputIngredients = ({ navigation }: { navigation: any }) => {
         )}
         <ScrollView style={styles.scrollView}>
           {selectedIngredients.map((ingredient, index) => (
-            <View key={index} style={styles.ingredientListItem}>
-              <Image
-                source={{ uri: ingredient.image }}
-                style={styles.ingredientImage}
-              />
-              <Text style={styles.ingredientName}>
-                {ingredient.name.charAt(0).toUpperCase() +
-                  ingredient.name.slice(1)}
-              </Text>
-            </View>
+            <Swipeable
+              key={ingredient.id}
+              renderRightActions={(progress, dragX) =>
+                renderRightActions(progress, dragX, () =>
+                  handleDelete(ingredient.id)
+                )
+              }
+              friction={1}
+            >
+              <View key={index} style={styles.ingredientListItem}>
+                <Image
+                  source={{ uri: ingredient.image }}
+                  style={styles.ingredientImage}
+                />
+                <Text style={styles.ingredientName}>
+                  {ingredient.name.charAt(0).toUpperCase() +
+                    ingredient.name.slice(1)}
+                </Text>
+              </View>
+            </Swipeable>
           ))}
         </ScrollView>
       </SafeAreaView>
@@ -210,8 +265,16 @@ const styles = StyleSheet.create({
     fontFamily: "SFProRounded-Heavy",
     color: "#fff",
     alignSelf: "center",
-    marginBottom: 20,
+    marginBottom: 10,
     marginTop: 10,
+  },
+  pageSubHeader: {
+    fontSize: 16,
+    fontFamily: "SFProRounded-Ultralight",
+    color: "#fff",
+    alignSelf: "center",
+    textAlign: "center",
+    marginBottom: 20,
   },
   searchbarClosed: {
     fontSize: 18,
@@ -288,6 +351,18 @@ const styles = StyleSheet.create({
   ingredientName: {
     fontSize: 18,
     color: "#fff",
+  },
+  deleteBox: {
+    backgroundColor: "red",
+    justifyContent: "center",
+    alignItems: "flex-end",
+    width: 100,
+  },
+  deleteText: {
+    color: "#fff",
+    fontSize: 18,
+    padding: 25,
+    fontFamily: "SFProRounded-Light",
   },
 });
 
