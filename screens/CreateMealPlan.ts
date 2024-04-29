@@ -18,24 +18,96 @@ interface UserPreferences {
   gender: "Male" | "Female" | "Other";
 }
 
+interface MealDetail {
+  title: string;
+  image: string;
+  readyInMinutes: number;
+  servings: number;
+  summary: string;
+  nutrients: Array<{
+    title: string;
+    amount: number;
+    unit: string;
+  }>;
+  instructions: Array<{
+    number: number;
+    step: string;
+    ingredients: Array<{
+      id: number;
+      name: string;
+      localizedName: string;
+      image: string;
+    }>;
+    equipment: Array<{
+      id: number;
+      name: string;
+      localizedName: string;
+      image: string;
+    }>;
+  }>;
+}
+
+interface ApiResponse {
+  results: MealDetail[];
+  nutrition: {
+    nutrients: Array<{
+      title: string;
+      amount: number;
+      unit: string;
+    }>;
+  };
+  analyzedInstructions: Array<{
+    steps: Array<{
+      number: number;
+      step: string;
+    }>;
+  }>;
+}
+
 const API_KEY = "e239de4240mshb093dfb4f333ef4p13eaafjsn7207ea6e4c74";
 const API_HOST = "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com";
 const API_URL = `https://${API_HOST}/recipes/complexSearch`;
 
+const breakfastListQuery = [
+  "oatmeal",
+  "smoothie",
+  "eggs",
+  "yogurt parfait",
+  "pancakes",
+  "avocado toast",
+];
+const lunchListQuery = ["salad", "sandwich", "soup", "wrap", "burger", "sushi"];
+const dinnerListQuery = [
+  "chicken",
+  "pasta",
+  "steak",
+  "seafood",
+  "taco",
+  "stir fry",
+  "pizza",
+];
+
+function randomQuery(list: string[]): string {
+  return list[Math.floor(Math.random() * list.length)];
+}
+
 // Calculate daily caloric needs based on user's physical and lifestyle data
 function calculateCaloricNeeds(preferences: UserPreferences): number {
   const { currentWeight, height, age, gender, activityLevel } = preferences;
+  // Works out BMR
   let bmr =
     10 * currentWeight +
     6.25 * height -
     5 * age +
     (gender === "Male" ? 5 : -161);
+  // Adjust BMR based on activity level and target weight
   const activityMultipliers = {
     Sedentary: 1.2,
     Light: 1.375,
     Moderate: 1.55,
     Vigorous: 1.725,
   };
+  // Caloric Deficit or Surplus based on target weight
   return (
     bmr * (activityMultipliers[activityLevel] || 1.2) +
     (currentWeight > preferences.targetWeight ? -500 : 500)
@@ -48,10 +120,15 @@ async function buildParams(
   mealType: string,
   userId: string
 ): Promise<any> {
-  const query = await fetchAndUpdateQuery(userId);
+  const query =
+    mealType === "breakfast"
+      ? randomQuery(breakfastListQuery)
+      : mealType === "lunch"
+      ? randomQuery(lunchListQuery)
+      : randomQuery(dinnerListQuery);
   const calories = calculateCaloricNeeds(preferences);
   return {
-    query: query || "",
+    query,
     diet: preferences.dietaryRestrictions.join(","),
     intolerances: preferences.intolerances.join(","),
     excludeIngredients: [
@@ -77,21 +154,6 @@ async function buildParams(
   };
 }
 
-// Fetch and update the query based on user's preferred foods
-async function fetchAndUpdateQuery(userId: string): Promise<string> {
-  const userRef = doc(firestore, "preferences", userId);
-  const docSnap = await getDoc(userRef);
-  if (docSnap.exists()) {
-    const userData = docSnap.data();
-    const preferredFoods = userData.preferredFoods || [];
-    const randomQuery =
-      preferredFoods[Math.floor(Math.random() * preferredFoods.length)];
-    await setDoc(userRef, { query: randomQuery }, { merge: true });
-    return randomQuery;
-  }
-  return "";
-}
-
 // Fetch meals from API and save to Firestore
 export async function createMealPlan(
   preferences: UserPreferences,
@@ -107,11 +169,26 @@ export async function createMealPlan(
         headers: { "X-RapidAPI-Key": API_KEY, "X-RapidAPI-Host": API_HOST },
       });
       if (response.data.results.length > 0) {
-        // Assume first result is the most relevant
         const mealDetails = response.data.results[0];
         await saveMealDetails(mealDetails, userId, type);
+
+        console.log(`Meals for ${type}:`, response.data.results);
+
+        if (mealDetails.nutrition) {
+          const nutrients = mealDetails.nutrition.nutrients;
+          console.log("Nutrients:", JSON.stringify(nutrients, null, 2)); // The `null, 2` arguments format the output for readability
+        }
+
+        if (mealDetails.analyzedInstructions.length > 0) {
+          const instructions = mealDetails.analyzedInstructions[0].steps;
+          console.log(
+            "Cooking Instructions:",
+            JSON.stringify(instructions, null, 2)
+          );
+        }
+      } else {
+        console.log(`No meals found for ${type}`);
       }
-      console.log(`Meals for ${type}:`, response.data.results);
     } catch (error) {
       console.error(`Failed to fetch meals for ${type}`, error);
     }
@@ -119,20 +196,61 @@ export async function createMealPlan(
 }
 
 // Save meal details to Firestore
-async function saveMealDetails(
-  mealDetails: any,
-  userId: string,
-  mealType: string
-): Promise<void> {
+async function saveMealDetails(mealDetails: any, userId: any, mealType: any) {
+  console.log("Saving meal details", { mealDetails, userId, mealType });
   const mealsRef = doc(firestore, "mealDetails", userId);
+
+  // Safely extracting nutrients with logging
+  const formattedNutrients =
+    mealDetails.nutrition?.nutrients.map((nutrient: any) => ({
+      title: nutrient.name,
+      amount: nutrient.amount,
+      unit: nutrient.unit,
+    })) || [];
+  console.log("Formatted nutrients:", formattedNutrients);
+
+  // Safely extracting instructions with checks and logging
+  const formattedInstructions =
+    mealDetails.analyzedInstructions[0]?.steps.map((step: any) => {
+      const formattedIngredients =
+        step.ingredients?.map((ingredient: any) => ({
+          id: ingredient.id,
+          name: ingredient.name,
+          image: ingredient.image,
+        })) || [];
+
+      const formattedEquipment =
+        step.equipment?.map((equipment: any) => ({
+          id: equipment.id,
+          name: equipment.name,
+          image: equipment.image,
+        })) || [];
+
+      return {
+        number: step.number,
+        step: step.step,
+        ingredients: formattedIngredients,
+        equipment: formattedEquipment,
+      };
+    }) || [];
+  console.log("Formatted instructions:", formattedInstructions);
+
+  // Build the meal data object
   const mealData = {
     title: mealDetails.title,
     image: mealDetails.image,
     readyInMinutes: mealDetails.readyInMinutes,
     servings: mealDetails.servings,
-    summary: mealDetails.summary.replace(/<[^>]+>/g, ""), // Strip HTML tags from summary
+    summary: mealDetails.summary.replace(/<[^>]*>/g, ""),
+    nutrients: formattedNutrients,
+    instructions: formattedInstructions,
   };
 
-  const mealTypeData = { [mealType]: mealData };
-  await setDoc(mealsRef, mealTypeData, { merge: true });
+  // Try saving to Firestore with error handling
+  try {
+    await setDoc(mealsRef, { [mealType]: mealData }, { merge: true });
+    console.log(`Successfully saved ${mealType} details for ${userId}`);
+  } catch (error) {
+    console.error(`Error saving ${mealType} details for ${userId}:`, error);
+  }
 }
