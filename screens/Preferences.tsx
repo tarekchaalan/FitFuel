@@ -17,6 +17,7 @@ import Slider from "@react-native-community/slider";
 import { BackIcon } from "../svgs";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { createMealPlan } from "./CreateMealPlan";
+import { createWorkoutPlan } from "./CreateWorkoutPlan";
 
 interface PreferencesProps {
   navigation: StackNavigationProp<any, any>;
@@ -227,6 +228,7 @@ const Preferences = ({ navigation }: { navigation: any }) => {
         console.log("Preferences saved successfully");
         // Passing user.uid as a second argument to createMealPlan
         await createMealPlan(updatedPreferences, user.uid);
+        await createWorkoutPlan(updatedPreferences, user.uid);
       } catch (error) {
         console.error("Error saving to Firestore:", error);
         Alert.alert("Error", "Failed to save preferences.");
@@ -651,7 +653,7 @@ const Preferences = ({ navigation }: { navigation: any }) => {
           <View style={styles.section}>
             <Text style={styles.label}>Fitness Level</Text>
             <View style={styles.multioptions}>
-              {["Beginner", "Intermediate", "Advanced"].map((level) => (
+              {["Beginner", "Intermediate", "Expert"].map((level) => (
                 <OptionBox
                   key={level}
                   label={level}
