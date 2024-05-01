@@ -107,10 +107,10 @@ const Dashboard = ({ navigation }: { navigation: any }) => {
   }, [auth.currentUser]); // Dependency on currentUser to re-invoke when it changes
 
   useEffect(() => {
-    console.log(
-      "Image URI using meals (updated state):",
-      meals.breakfast.image
-    );
+    // console.log(
+    //   "Image URI using meals (updated state):",
+    //   meals.breakfast.image
+    // );
   }, [meals]);
 
   const fetchUserData = async () => {
@@ -175,7 +175,7 @@ const Dashboard = ({ navigation }: { navigation: any }) => {
         currentUser.photoURL ||
         require("../assets/images/profile-placeholder.jpg");
       setProfilePicture(pictureSource);
-      console.log("Profile Picture URI:", pictureSource);
+      // console.log("Profile Picture URI:", pictureSource);
       fetchUserData();
     }
   }, [currentUser]);
