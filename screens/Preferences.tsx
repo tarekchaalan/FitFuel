@@ -597,7 +597,7 @@ const Preferences = ({ navigation }: { navigation: any }) => {
                 handleSliderChange("workoutFrequencyPerWeek", value)
               }
               minimumValue={1}
-              maximumValue={14}
+              maximumValue={7}
               step={1}
               thumbTintColor="#9A2CE8"
               minimumTrackTintColor="#9A2CE8"
