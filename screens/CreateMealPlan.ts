@@ -1,4 +1,5 @@
 import axios from "axios";
+import { Alert } from "react-native";
 import { firestore } from "../firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 
@@ -172,32 +173,32 @@ export async function createMealPlan(
         const mealDetails = response.data.results[0];
         await saveMealDetails(mealDetails, userId, type);
 
-        console.log(`Meals for ${type}:`, response.data.results);
+        // console.log(`Meals for ${type}:`, response.data.results);
 
         if (mealDetails.nutrition) {
           const nutrients = mealDetails.nutrition.nutrients;
-          console.log("Nutrients:", JSON.stringify(nutrients, null, 2)); // The `null, 2` arguments format the output for readability
+          // console.log("Nutrients:", JSON.stringify(nutrients, null, 2)); // The `null, 2` arguments format the output for readability
         }
 
         if (mealDetails.analyzedInstructions.length > 0) {
           const instructions = mealDetails.analyzedInstructions[0].steps;
-          console.log(
-            "Cooking Instructions:",
-            JSON.stringify(instructions, null, 2)
-          );
+          // console.log(
+          //   "Cooking Instructions:",
+          //   JSON.stringify(instructions, null, 2)
+          // );
         }
       } else {
-        console.log(`No meals found for ${type}`);
+        Alert.alert(`No meals found for ${type}, please try again.`);
       }
     } catch (error) {
-      console.error(`Failed to fetch meals for ${type}`, error);
+      // console.error(`Failed to fetch meals for ${type}`, error);
     }
   }
 }
 
 // Save meal details to Firestore
 async function saveMealDetails(mealDetails: any, userId: any, mealType: any) {
-  console.log("Saving meal details", { mealDetails, userId, mealType });
+  // console.log("Saving meal details", { mealDetails, userId, mealType });
   const mealsRef = doc(firestore, "mealDetails", userId);
 
   // Safely extracting nutrients with logging
@@ -207,7 +208,7 @@ async function saveMealDetails(mealDetails: any, userId: any, mealType: any) {
       amount: nutrient.amount,
       unit: nutrient.unit,
     })) || [];
-  console.log("Formatted nutrients:", formattedNutrients);
+  // console.log("Formatted nutrients:", formattedNutrients);
 
   // Safely extracting instructions with checks and logging
   const formattedInstructions =
@@ -233,7 +234,7 @@ async function saveMealDetails(mealDetails: any, userId: any, mealType: any) {
         equipment: formattedEquipment,
       };
     }) || [];
-  console.log("Formatted instructions:", formattedInstructions);
+  // console.log("Formatted instructions:", formattedInstructions);
 
   // Build the meal data object
   const mealData = {
@@ -249,8 +250,8 @@ async function saveMealDetails(mealDetails: any, userId: any, mealType: any) {
   // Try saving to Firestore with error handling
   try {
     await setDoc(mealsRef, { [mealType]: mealData }, { merge: true });
-    console.log(`Successfully saved ${mealType} details for ${userId}`);
+    // console.log(`Successfully saved ${mealType} details for ${userId}`);
   } catch (error) {
-    console.error(`Error saving ${mealType} details for ${userId}:`, error);
+    // console.error(`Error saving ${mealType} details for ${userId}:`, error);
   }
 }
