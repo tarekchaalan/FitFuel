@@ -15,7 +15,8 @@ import Dashboard from "./screens/Dashboard";
 import Workouts from "./screens/Workouts";
 import ScanEquipment from "./screens/ScanEquipment";
 import EquipmentResult from "./screens/EquipmentResult";
-import WorkoutSchedule from "./screens/WorkoutSchedule";
+import WorkoutPlan from "./screens/WorkoutPlan";
+import WorkoutDetails from "./screens/WorkoutDetails";
 import Meals from "./screens/Meals";
 import MealPlan from "./screens/MealPlan";
 import InputIngredients from "./screens/InputIngredients";
@@ -97,9 +98,10 @@ function App() {
                   name="EquipmentResult"
                   component={EquipmentResult}
                 />
+                <Stack.Screen name="WorkoutPlan" component={WorkoutPlan} />
                 <Stack.Screen
-                  name="WorkoutSchedule"
-                  component={WorkoutSchedule}
+                  name="WorkoutDetails"
+                  component={WorkoutDetails}
                 />
                 <Stack.Screen name="Meals" component={Meals} />
                 <Stack.Screen name="MealPlan" component={MealPlan} />
