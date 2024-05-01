@@ -20,7 +20,7 @@ type RootStackParamList = {
   Meals: undefined;
   Profile: undefined;
   ScanEquipment: undefined;
-  WorkoutSchedule: undefined;
+  WorkoutPlan: undefined;
 };
 
 type WorkoutsScreenNavigationProp = StackNavigationProp<RootStackParamList>;
@@ -66,7 +66,7 @@ const Workouts = ({ navigation }: WorkoutsProps) => {
               description="View your workouts in a day-to-day format"
               imageSource={scheduleimage}
               navigation={navigation}
-              routeName="WorkoutSchedule"
+              routeName="WorkoutPlan"
             />
           </View>
         </ScrollView>
