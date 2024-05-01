@@ -651,7 +651,7 @@ const Preferences = ({ navigation }: { navigation: any }) => {
           <View style={styles.section}>
             <Text style={styles.label}>Fitness Level</Text>
             <View style={styles.multioptions}>
-              {["Beginner", "Intermediate", "Expert"].map((level) => (
+              {["Beginner", "Intermediate", "Advanced"].map((level) => (
                 <OptionBox
                   key={level}
                   label={level}
