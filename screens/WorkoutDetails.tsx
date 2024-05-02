@@ -1,5 +1,12 @@
 import React from "react";
-import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  SafeAreaView,
+} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { BackIcon } from "../svgs"; // Import your BackIcon component
 import { ScrollView } from "react-native-gesture-handler";
@@ -30,43 +37,69 @@ const WorkoutDetails: React.FC<Props> = ({ route }) => {
   const navigation = useNavigation(); // Hook to access navigation functions
 
   return (
-    <View style={styles.container}>
-      <ScrollView>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
-          <BackIcon />
-        </TouchableOpacity>
-        <Text style={styles.header}>Workout Name</Text>
-        <Text style={styles.content}>{name}</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <ScrollView>
+          <View style={styles.IconsContainer}>
+            <TouchableOpacity
+              style={styles.BackIcon}
+              onPress={() => navigation.goBack()}
+            >
+              <BackIcon />
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.pageHeader}>Workout Details</Text>
+          <Text style={styles.header}>Workout Name</Text>
+          <Text style={styles.content}>{name}</Text>
 
-        <Text style={styles.header}>Difficulty</Text>
-        <Text style={styles.content}>{difficulty}</Text>
+          <Text style={styles.header}>Difficulty</Text>
+          <Text style={styles.content}>{difficulty}</Text>
 
-        <Text style={styles.header}>Target Muscle</Text>
-        <Text style={styles.content}>{muscle}</Text>
-        <Image
-          source={muscleImages[muscle.toLowerCase()]}
-          style={styles.muscleImage}
-          resizeMode="contain"
-        />
-        <Text style={styles.header}>Equipment Needed</Text>
-        <Text style={styles.content}>{equipment}</Text>
+          <Text style={styles.header}>Target Muscle</Text>
+          <Text style={styles.content}>{muscle}</Text>
+          <Image
+            source={muscleImages[muscle.toLowerCase()]}
+            style={styles.muscleImage}
+            resizeMode="contain"
+          />
+          <Text style={styles.header}>Equipment Needed</Text>
+          <Text style={styles.content}>{equipment}</Text>
 
-        <Text style={styles.header}>Instructions</Text>
-        <Text style={styles.content}>{instructions}</Text>
-      </ScrollView>
-    </View>
+          <Text style={styles.header}>Instructions</Text>
+          <Text style={styles.content}>{instructions}</Text>
+        </ScrollView>
+      </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#000", // bg color for whole screen
+  },
   container: {
     flex: 1,
     backgroundColor: "#000", // Black background color
     padding: 20,
   },
+  IconsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginLeft: "5%",
+    marginRight: "5%",
+    marginTop: "2%",
+  },
+  BackIcon: {},
+  pageHeader: {
+    fontSize: 36,
+    fontFamily: "SFProRounded-Heavy",
+    color: "#fff",
+    alignSelf: "center",
+    marginBottom: 10,
+    marginTop: 10,
+  },
+
   header: {
     fontSize: 18,
     fontWeight: "bold",
@@ -84,12 +117,6 @@ const styles = StyleSheet.create({
     height: 300,
     alignSelf: "center",
     marginBottom: 10,
-  },
-  backButton: {
-    position: "absolute",
-    top: 20,
-    left: 20,
-    zIndex: 1,
   },
 });
 
