@@ -11,15 +11,15 @@ import {
   Alert,
 } from "react-native";
 import { firestore } from "../firebase";
-import { doc, getDoc, onSnapshot } from "firebase/firestore";
-import { BackIcon } from "../svgs";
-import { getAuth } from "firebase/auth";
+import { doc, onSnapshot, getDoc } from "firebase/firestore";
 import { createMealPlan } from "./CreateMealPlan";
 import { UserPreferences } from "./Preferences";
+import { BackIcon } from "../svgs";
+import { getAuth } from "firebase/auth";
 
 const auth = getAuth();
 
-interface MealData {
+export interface MealData {
   title?: string;
   image?: string;
   summary?: string;
@@ -43,7 +43,6 @@ interface MealDataMap {
 }
 
 const MealPlan = ({ navigation }: { navigation: any }) => {
-  const [selectedMeal, setSelectedMeal] = useState<MealData | null>(null);
   const [mealData, setMealData] = useState<MealDataMap>({
     breakfast: {},
     lunch: {},
@@ -82,8 +81,8 @@ const MealPlan = ({ navigation }: { navigation: any }) => {
       }
     );
 
-    return () => unsubscribe(); // Cleanup function to unsubscribe from the listener
-  }, [user]); // Dependency on the user object
+    return () => unsubscribe();
+  }, [user]);
 
   const regenerateMeals = async () => {
     if (user) {
@@ -116,112 +115,47 @@ const MealPlan = ({ navigation }: { navigation: any }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle="light-content" />
-        <View style={styles.BackContainer}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <BackIcon />
-          </TouchableOpacity>
-        </View>
-        <Text style={styles.pageHeader}>Your Meal Plan</Text>
-        <ScrollView style={styles.mealList}>
-          {Object.entries(mealData).map(([mealType, meal]) => (
-            <React.Fragment key={mealType}>
-              {mealType === "breakfast" && (
-                <Text style={styles.entryheader}>Breakfast</Text>
-              )}
-              {mealType === "lunch" && (
-                <Text style={styles.entryheader}>Lunch</Text>
-              )}
-              {mealType === "dinner" && (
-                <Text style={styles.entryheader}>Dinner</Text>
-              )}
-              {meal.title && (
-                <TouchableOpacity
-                  key={mealType}
-                  style={styles.mealItem}
-                  onPress={() => setSelectedMeal(meal)}
-                >
-                  <Image
-                    source={{ uri: meal.image }}
-                    style={styles.mealImage}
-                  />
-                  <View style={styles.mealTextContainer}>
-                    <Text
-                      numberOfLines={3}
-                      ellipsizeMode="tail"
-                      style={styles.mealTitle}
-                    >
-                      {meal.title}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              )}
-            </React.Fragment>
-          ))}
-          <Text style={styles.regenMeals}>
-            Not Satisfied?{"  "}
-            <Text style={styles.regenMealsButton} onPress={regenerateMeals}>
-              Regenerate Meals
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="light-content" />
+      <View style={styles.BackContainer}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <BackIcon />
+        </TouchableOpacity>
+      </View>
+      <Text style={styles.pageHeader}>Your Meal Plan</Text>
+      <ScrollView style={styles.mealList}>
+        {Object.entries(mealData).map(([mealType, meal]) => (
+          <React.Fragment key={mealType}>
+            <Text style={styles.entryheader}>
+              {mealType.charAt(0).toUpperCase() + mealType.slice(1)}
             </Text>
-          </Text>
-        </ScrollView>
-        {selectedMeal && (
-          <View style={styles.mealDetail}>
-            <View style={styles.detailBackContainer}>
-              <TouchableOpacity onPress={() => setSelectedMeal(null)}>
-                <BackIcon />
+            {meal.title && (
+              <TouchableOpacity
+                style={styles.mealItem}
+                onPress={() => navigation.navigate("MealDetails", { meal })}
+              >
+                <Image source={{ uri: meal.image }} style={styles.mealImage} />
+                <View style={styles.mealTextContainer}>
+                  <Text
+                    numberOfLines={3}
+                    ellipsizeMode="tail"
+                    style={styles.mealTitle}
+                  >
+                    {meal.title}
+                  </Text>
+                </View>
               </TouchableOpacity>
-            </View>
-            <Text style={styles.title}>{selectedMeal.title}</Text>
-            <ScrollView>
-              <Image
-                source={{ uri: selectedMeal.image }}
-                style={styles.detailImage}
-              />
-              <Text style={styles.SectionTitle}>Summary</Text>
-              <Text style={styles.sectionBody}>{selectedMeal.summary}</Text>
-              <Text style={styles.SectionTitle}>Time to make</Text>
-              <Text style={styles.sectionBody}>
-                {selectedMeal.readyInMinutes} minutes
-              </Text>
-              <Text style={styles.SectionTitle}>Servings</Text>
-              <Text style={styles.sectionBody}>
-                {selectedMeal.servings} servings
-              </Text>
-
-              <Text style={styles.detailHeader}>Nutrients</Text>
-              {selectedMeal.nutrients && selectedMeal.nutrients.length > 0 ? (
-                selectedMeal.nutrients.map((nutrient, index) => (
-                  <Text key={index} style={styles.nutrientItem}>
-                    {`${nutrient.title}: ${nutrient.amount} ${nutrient.unit}`}
-                  </Text>
-                ))
-              ) : (
-                <Text style={styles.nutrientItem}>
-                  No Nutrient Data Available
-                </Text>
-              )}
-
-              <Text style={styles.detailHeader}>Instructions</Text>
-              {selectedMeal.instructions &&
-              selectedMeal.instructions.length > 0 ? (
-                selectedMeal.instructions.map((instruction, index) => (
-                  <Text key={index} style={styles.instructionItem}>
-                    {`${instruction.number}. ${instruction.step}`}
-                  </Text>
-                ))
-              ) : (
-                <Text style={styles.instructionItem}>
-                  No Instructions Available
-                </Text>
-              )}
-            </ScrollView>
-          </View>
-        )}
-      </SafeAreaView>
-    </View>
+            )}
+          </React.Fragment>
+        ))}
+        <Text style={styles.regenMeals}>
+          Not Satisfied?{"  "}
+          <Text style={styles.regenMealsButton} onPress={regenerateMeals}>
+            Regenerate Meals
+          </Text>
+        </Text>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
@@ -229,9 +163,6 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: "#000",
-  },
-  container: {
-    flex: 1,
   },
   BackContainer: {
     alignItems: "flex-start",
@@ -256,23 +187,21 @@ const styles = StyleSheet.create({
   },
   mealItem: {
     flexDirection: "row",
-    alignItems: "center", // This ensures vertical centering
-    height: 150, // Adjust the height as needed
+    alignItems: "center",
+    height: 150,
     marginBottom: 10,
-    borderBottomColor: "#aaa",
-    borderWidth: 1,
     paddingLeft: 10,
-  },
-  mealTextContainer: {
-    flex: 1,
-    marginLeft: 10,
-    justifyContent: "center", // Centers text vertically within the container
   },
   mealImage: {
     width: 125,
     height: 125,
     borderRadius: 10,
     marginRight: 10,
+  },
+  mealTextContainer: {
+    flex: 1,
+    marginLeft: 10,
+    justifyContent: "center",
   },
   mealTitle: {
     color: "#fff",
@@ -292,66 +221,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: "SFProRounded-Regular",
     textDecorationLine: "underline",
-  },
-  mealDetail: {
-    padding: 20,
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "#000",
-    zIndex: 1,
-  },
-  detailBackContainer: {
-    alignItems: "flex-start",
-    marginLeft: "2%",
-    marginTop: "10%",
-  },
-  title: {
-    fontSize: 22,
-    fontFamily: "SFProRounded-Heavy",
-    color: "#fff",
-    alignSelf: "center",
-    textAlign: "center",
-    marginBottom: 10,
-  },
-  detailImage: {
-    width: "100%",
-    height: 200,
-    resizeMode: "contain",
-    marginBottom: 10,
-  },
-  SectionTitle: {
-    fontSize: 18,
-    fontFamily: "SFProRounded-Heavy",
-    color: "#fff",
-    marginTop: 25,
-  },
-  sectionBody: {
-    color: "#fff",
-    fontSize: 16,
-    fontFamily: "SFProRounded-Light",
-    marginBottom: 10,
-    marginTop: 10,
-  },
-  detailHeader: {
-    fontSize: 20,
-    fontFamily: "SFProRounded-Heavy",
-    marginTop: 25,
-    color: "#fff",
-  },
-  nutrientItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 10,
-    color: "#fff",
-  },
-  instructionItem: {
-    color: "#fff",
-    marginTop: 10,
-    marginLeft: 10,
-    marginBottom: 20,
   },
 });
 
