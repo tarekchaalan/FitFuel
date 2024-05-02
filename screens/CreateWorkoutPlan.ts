@@ -53,11 +53,11 @@ export async function createWorkoutPlan(
       if (exercises.length > 0) {
         await saveWorkoutDetails(exercises, userId, day);
       } else {
-        console.log(`No workouts found for ${day}`);
+        // console.log(`No workouts found for ${day}`);
         await saveWorkoutDetails([], userId, day); // Save empty details if no workouts found
       }
     } else {
-      console.log(`Workout for ${day}: Rest Day`);
+      // console.log(`Workout for ${day}: Rest Day`);
       await saveRestDay(userId, day); // Save a rest day explicitly
     }
   }
@@ -166,10 +166,10 @@ async function saveWorkoutDetails(
 
   try {
     await setDoc(dayRef, { workouts: formattedWorkouts, restDay: false }); // Explicitly mark as not a rest day
-    console.log(
-      `Successfully saved workouts for ${day} for ${userId}:`,
-      JSON.stringify(formattedWorkouts, null, 2)
-    );
+    // console.log(
+    //   `Successfully saved workouts for ${day} for ${userId}:`,
+    //   JSON.stringify(formattedWorkouts, null, 2)
+    // );
   } catch (error) {
     console.error(
       `Error saving workouts for ${day} for ${userId}:`,
@@ -182,7 +182,7 @@ async function saveRestDay(userId: string, day: string) {
   const dayRef = doc(firestore, "workoutDetails", userId, "days", day);
   try {
     await setDoc(dayRef, { workouts: [], restDay: true }); // Clear workouts and mark as a rest day
-    console.log(`Successfully saved Rest Day for ${day} for ${userId}`);
+    // console.log(`Successfully saved Rest Day for ${day} for ${userId}`);
   } catch (error) {
     console.error(
       `Error saving Rest Day for ${day} for ${userId}:`,
@@ -203,7 +203,7 @@ async function deleteExistingWorkouts(userId: string) {
 
   try {
     await batch.commit();
-    console.log(`Successfully deleted existing workouts for user ${userId}`);
+    // console.log(`Successfully deleted existing workouts for user ${userId}`);
   } catch (error) {
     console.error(
       `Error deleting existing workouts for user ${userId}:`,
