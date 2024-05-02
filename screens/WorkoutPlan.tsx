@@ -33,7 +33,7 @@ const WorkoutPlan = ({ navigation }: { navigation: any }) => {
 
   useEffect(() => {
     if (!user) {
-      console.log("UserId is undefined, skipping fetch");
+      // console.log("UserId is undefined, skipping fetch");
       return;
     }
 
@@ -76,12 +76,15 @@ const WorkoutPlan = ({ navigation }: { navigation: any }) => {
     return (
       <SafeAreaView style={styles.safeArea}>
         <StatusBar barStyle="light-content" />
-        <View style={styles.BackContainer}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
+        <View style={styles.IconsContainer}>
+          <TouchableOpacity
+            style={styles.BackIcon}
+            onPress={() => navigation.goBack()}
+          >
             <BackIcon />
           </TouchableOpacity>
         </View>
-        <Text style={styles.header}>Workout Schedule</Text>
+        <Text style={styles.pageHeader}>Workout Plan</Text>
         <View style={styles.contentBox}>
           <Text style={styles.subHeader}>
             {new Date().toLocaleDateString("en-us", { weekday: "long" })}
@@ -104,21 +107,21 @@ const WorkoutPlan = ({ navigation }: { navigation: any }) => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" />
-      <TouchableOpacity onPress={() => navigation.goBack()}>
-        <BackIcon />
-      </TouchableOpacity>
-      <Text style={styles.header}>Workout Schedule</Text>
-      <Text style={styles.dayHeader}>
-        {new Date().toLocaleDateString("en-us", { weekday: "long" })}
-      </Text>
       <ScrollView style={styles.scrollView}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <BackIcon />
+        </TouchableOpacity>
+        <Text style={styles.pageHeader}>Workout Schedule</Text>
+        <Text style={styles.dayHeader}>
+          {new Date().toLocaleDateString("en-us", { weekday: "long" })}
+        </Text>
         {Object.entries(workouts).map(([muscle, muscleWorkouts]) => (
           <View key={muscle} style={styles.workoutBox}>
             <Text style={styles.muscleHeader}>
               {muscle}
               {"  "}
               <Text style={styles.lightText}>
-                (Please take a 2 minute break after each set)
+                (Take a 2 minute break after each set)
               </Text>
             </Text>
             {/* Line here */}
@@ -147,24 +150,28 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#000",
   },
-  BackContainer: {
-    alignItems: "flex-start",
+  IconsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginLeft: "5%",
+    marginRight: "5%",
     marginTop: "2%",
   },
-  header: {
+  BackIcon: {},
+  pageHeader: {
     fontSize: 36,
-    fontWeight: "bold",
+    fontFamily: "SFProRounded-Heavy",
     color: "#fff",
-    textAlign: "center",
-    marginBottom: "5%",
-    textTransform: "capitalize", // This will capitalize all letters
+    alignSelf: "center",
+    marginBottom: 10,
+    marginTop: 10,
   },
   dayHeader: {
     fontSize: 28,
     fontWeight: "bold",
-    color: "#fff",
+    color: "#9A2CE8",
     textAlign: "center",
+    marginBottom: "5%",
     textTransform: "capitalize", // This will capitalize the first letter of each word
   },
   loading: {
@@ -177,6 +184,7 @@ const styles = StyleSheet.create({
   lightText: {
     fontSize: 16,
     color: "#fff",
+    alignSelf: "center",
     fontFamily: "SFProRounded-Ultralight",
   },
   scrollView: {
