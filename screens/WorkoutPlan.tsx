@@ -9,94 +9,134 @@ import {
   StatusBar,
 } from "react-native";
 import { firestore } from "../firebase";
-import { doc, getDoc, DocumentData } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 import { BackIcon } from "../svgs";
-import { NavigationProp } from "@react-navigation/native";
 
-interface Props {
-  navigation: NavigationProp<any>; // Assuming 'any' is replaced appropriately based on your navigation structure
-  route: any;
+const auth = getAuth();
+
+interface Workout {
+  name: string;
+  muscle: string;
+  sets: { reps: number; timePerRep: number }[];
+  type: string;
+  difficulty: string;
+  equipment: string;
+  instructions: string;
 }
 
-const WorkoutPlan: React.FC<Props> = ({ navigation, route }) => {
-  const [daySchedule, setDaySchedule] = useState<DocumentData | null | string>(
-    null
-  );
+type WorkoutData = { [muscle: string]: Workout[] } | "Rest Day";
+
+const WorkoutPlan = ({ navigation }: { navigation: any }) => {
+  const [workouts, setWorkouts] = useState<WorkoutData | null>(null);
+  const user = auth.currentUser;
 
   useEffect(() => {
+    if (!user) {
+      console.log("UserId is undefined, skipping fetch");
+      return;
+    }
+
     const today = new Date().toLocaleDateString("en-us", { weekday: "long" });
-    const dayRef = doc(firestore, "workouts", today);
+    const dayRef = doc(firestore, "workoutDetails", user.uid, "days", today);
 
-    const fetchSchedule = async () => {
+    const fetchDaySchedule = async () => {
       const docSnap = await getDoc(dayRef);
-
       if (docSnap.exists()) {
-        const data = docSnap.data();
-        if (Array.isArray(data.workouts)) {
-          // Assuming 'workouts' is the array field
-          setDaySchedule(data.workouts);
+        const data = docSnap.data() as {
+          workouts: Workout[];
+          restDay: boolean;
+        };
+        if (data.restDay) {
+          setWorkouts("Rest Day");
         } else {
-          setDaySchedule("Rest Day");
+          // Convert array of workouts to the expected dictionary format
+          const workoutDict = data.workouts.reduce<{
+            [muscle: string]: Workout[];
+          }>((acc, workout) => {
+            acc[workout.muscle] = acc[workout.muscle] || [];
+            acc[workout.muscle].push(workout);
+            return acc;
+          }, {});
+          setWorkouts(workoutDict);
         }
       } else {
-        setDaySchedule("Rest Day");
+        setWorkouts("Rest Day");
       }
     };
 
-    fetchSchedule().catch(console.error);
-  }, []);
+    fetchDaySchedule();
+  }, [user]);
 
-  const navigateToDetails = (workout: DocumentData) => {
-    navigation.navigate("WorkoutDetails", { ...workout });
+  const handleWorkoutSelect = (workout: Workout) => {
+    navigation.navigate("WorkoutDetails", workout);
   };
 
-  const groupExercisesByMuscle = (workouts: DocumentData[]) => {
-    const grouped: { [key: string]: DocumentData[] } = {};
-    workouts.forEach((workout) => {
-      const muscleGroup = workout.muscle as string;
-      if (!grouped[muscleGroup]) {
-        grouped[muscleGroup] = [];
-      }
-      grouped[muscleGroup].push(workout);
-    });
-    return grouped;
-  };
+  if (typeof workouts === "string") {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar barStyle="light-content" />
+        <View style={styles.BackContainer}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <BackIcon />
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.header}>Workout Schedule</Text>
+        <View style={styles.contentBox}>
+          <Text style={styles.subHeader}>
+            {new Date().toLocaleDateString("en-us", { weekday: "long" })}
+          </Text>
+          <Text style={styles.restDayMessage}>You can rest today!</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!workouts) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar barStyle="light-content" />
+        <Text style={styles.loading}>Loading workouts...</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" />
-      <View style={styles.BackContainer}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <BackIcon />
-        </TouchableOpacity>
-      </View>
-      <Text style={styles.pageHeader}>Workout Schedule</Text>
+      <TouchableOpacity onPress={() => navigation.goBack()}>
+        <BackIcon />
+      </TouchableOpacity>
+      <Text style={styles.header}>Workout Schedule</Text>
+      <Text style={styles.dayHeader}>
+        {new Date().toLocaleDateString("en-us", { weekday: "long" })}
+      </Text>
       <ScrollView style={styles.scrollView}>
-        {typeof daySchedule === "string" ? (
-          <View style={styles.restDayBox}>
-            <Text style={styles.restDayText}>{daySchedule}</Text>
+        {Object.entries(workouts).map(([muscle, muscleWorkouts]) => (
+          <View key={muscle} style={styles.workoutBox}>
+            <Text style={styles.muscleHeader}>
+              {muscle}
+              {"  "}
+              <Text style={styles.lightText}>
+                (Please take a 2 minute break after each set)
+              </Text>
+            </Text>
+            {/* Line here */}
+            <View style={styles.line} />
+            {muscleWorkouts.map((workout, index) => (
+              <TouchableOpacity
+                key={index}
+                onPress={() => handleWorkoutSelect(workout)}
+              >
+                <View style={styles.workoutContainer}>
+                  <Text style={styles.workoutName}>{workout.name}</Text>
+                  <Text style={styles.repetitions}>( 3 x 15 )</Text>
+                </View>
+              </TouchableOpacity>
+            ))}
           </View>
-        ) : (
-          daySchedule &&
-          Object.entries(
-            groupExercisesByMuscle(daySchedule as DocumentData[])
-          ).map(([muscle, workouts]) => (
-            <View key={muscle} style={styles.workoutBox}>
-              <Text style={styles.muscleHeader}>{muscle}</Text>
-              {workouts.map((workout, index) => (
-                <TouchableOpacity
-                  key={index}
-                  onPress={() => navigateToDetails(workout)}
-                >
-                  <Text style={styles.workoutText}>
-                    {workout.name} | {workout.sets.length} x{" "}
-                    {workout.sets[0].reps} reps
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          ))
-        )}
+        ))}
+        <Text style={styles.lightText}>Click on a workout to see details</Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -112,38 +152,97 @@ const styles = StyleSheet.create({
     marginLeft: "5%",
     marginTop: "2%",
   },
-  pageHeader: {
-    fontSize: 20,
-    fontFamily: "SFProRounded-Heavy",
+  header: {
+    fontSize: 36,
+    fontWeight: "bold",
     color: "#fff",
-    alignSelf: "center",
+    textAlign: "center",
+    marginBottom: "5%",
+    textTransform: "capitalize", // This will capitalize all letters
+  },
+  dayHeader: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#fff",
+    textAlign: "center",
+    textTransform: "capitalize", // This will capitalize the first letter of each word
+  },
+  loading: {
+    fontSize: 20,
+    color: "#fff",
+    textAlign: "center",
+    justifyContent: "center",
+    marginTop: "90%",
+  },
+  lightText: {
+    fontSize: 16,
+    color: "#fff",
+    fontFamily: "SFProRounded-Ultralight",
   },
   scrollView: {
-    marginHorizontal: 20,
-  },
-  restDayBox: {
-    alignItems: "center",
-    marginVertical: 20,
-  },
-  restDayText: {
-    fontSize: 18,
-    color: "#fff",
+    margin: 20,
   },
   workoutBox: {
     marginBottom: 20,
     padding: 10,
     backgroundColor: "#1e1e1e",
     borderRadius: 10,
+    shadowColor: "#fff",
+    shadowOffset: { width: 2, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
   muscleHeader: {
-    fontSize: 16,
-    color: "#fff",
+    fontSize: 18,
     fontWeight: "bold",
+    color: "#fff",
     marginBottom: 5,
+    textTransform: "capitalize", // This will capitalize the first letter of each word
+  },
+  line: {
+    backgroundColor: "#fff",
+    height: 1,
+    width: "100%",
+    opacity: 0.2,
+    marginBottom: 10,
   },
   workoutText: {
-    fontSize: 14,
+    fontSize: 16,
     color: "#fff",
+    marginBottom: 5,
+  },
+  workoutContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  workoutName: {
+    flex: 1, // Takes as much space as available
+    textAlign: "left",
+    fontSize: 16,
+    color: "#fff",
+    marginBottom: 5,
+  },
+  repetitions: {
+    textAlign: "right",
+    fontSize: 16,
+    color: "#fff",
+    marginBottom: 5,
+  },
+
+  contentBox: {
+    padding: 20,
+    alignItems: "center",
+  },
+  subHeader: {
+    fontSize: 20,
+    color: "#fff",
+    textTransform: "capitalize", // Capitalize each word
+  },
+  restDayMessage: {
+    fontSize: 16,
+    color: "#fff",
+    marginTop: 10,
+    textTransform: "capitalize", // Capitalize each word
   },
 });
 

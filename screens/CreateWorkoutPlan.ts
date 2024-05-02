@@ -1,8 +1,11 @@
-// Error: muscleImage is an empty string in firebase
-
 import { firestore } from "../firebase";
-import { doc, setDoc } from "firebase/firestore";
-import axios from "axios";
+import {
+  doc,
+  setDoc,
+  collection,
+  getDocs,
+  writeBatch,
+} from "firebase/firestore";
 
 interface UserPreferences {
   fitnessLevel: string;
@@ -17,7 +20,6 @@ interface WorkoutDetail {
   type: string;
   muscle: string;
   difficulty: string;
-  muscleImage?: string;
 }
 
 const API_KEY = "b1rEEJVCNE42lsxFixyYDQ==dn1SX7muKjer2xZg";
@@ -34,6 +36,8 @@ export async function createWorkoutPlan(
   preferences: UserPreferences,
   userId: string
 ): Promise<void> {
+  await deleteExistingWorkouts(userId); // Ensure previous workouts are cleared
+
   const weeklySchedule = distributeWorkoutDays(
     preferences.workoutFrequencyPerWeek,
     muscleGroups
@@ -43,48 +47,19 @@ export async function createWorkoutPlan(
     if (muscleGroup) {
       const exercises = await fetchExercises(
         muscleGroup,
-        preferences.fitnessLevel
+        preferences.fitnessLevel,
+        preferences.workoutDuration
       );
       if (exercises.length > 0) {
         await saveWorkoutDetails(exercises, userId, day);
       } else {
         console.log(`No workouts found for ${day}`);
-        // Save empty workout details to signify no planned exercises
-        await saveWorkoutDetails([], userId, day);
+        await saveWorkoutDetails([], userId, day); // Save empty details if no workouts found
       }
     } else {
       console.log(`Workout for ${day}: Rest Day`);
-      // Explicitly save a rest day in the database
-      await saveRestDay(userId, day);
+      await saveRestDay(userId, day); // Save a rest day explicitly
     }
-  }
-}
-
-async function getMuscleImage(muscle: string): Promise<string> {
-  const options = {
-    method: "GET",
-    url: "https://muscle-group-image-generator.p.rapidapi.com/getImage",
-    params: {
-      muscleGroups: muscle,
-      color: "154,44,232",
-      transparentBackground: "1",
-    },
-    headers: {
-      "X-RapidAPI-Key": "e239de4240mshb093dfb4f333ef4p13eaafjsn7207ea6e4c74",
-      "X-RapidAPI-Host": "muscle-group-image-generator.p.rapidapi.com",
-    },
-  };
-
-  try {
-    const response = await axios.request(options);
-    if (response.data && response.data.image_url) {
-      return response.data.image_url; // Assuming the API returns the image URL
-    } else {
-      throw new Error("Invalid response from muscle image API");
-    }
-  } catch (error) {
-    console.error("Error fetching muscle image:", error);
-    throw error;
   }
 }
 
@@ -136,10 +111,16 @@ function distributeWorkoutDays(
 
 async function fetchExercises(
   muscles: string[],
-  fitnessLevel: string
+  fitnessLevel: string,
+  maxDuration: number // Maximum total duration in minutes
 ): Promise<WorkoutDetail[]> {
   let exercises: WorkoutDetail[] = [];
+  let totalTime = 0;
+  const averageWorkoutTime = 5; // Average duration per workout in minutes
+
   for (const muscle of muscles) {
+    if (totalTime >= maxDuration) break; // Stop if the planned workout duration is reached
+
     const response = await fetch(
       `${API_URL}?muscle=${muscle}&difficulty=${fitnessLevel}`,
       {
@@ -160,16 +141,13 @@ async function fetchExercises(
     }
 
     const data = await response.json();
-    exercises = exercises.concat(data); // Combine exercises from different muscles
-
-    // Make a request to the muscle group image generation API
-    try {
-      const muscleImage = await getMuscleImage(muscle);
-      exercises.forEach((exercise) => {
-        exercise.muscleImage = muscleImage;
-      });
-    } catch (error) {
-      console.error("Error fetching muscle image:", error);
+    for (const workout of data) {
+      if (totalTime + averageWorkoutTime <= maxDuration) {
+        exercises.push(workout);
+        totalTime += averageWorkoutTime;
+      } else {
+        break; // Do not add more workouts if it exceeds the time limit
+      }
     }
   }
 
@@ -181,18 +159,13 @@ async function saveWorkoutDetails(
   userId: string,
   day: string
 ) {
-  const workoutsRef = doc(firestore, "workoutDetails", userId);
+  const dayRef = doc(firestore, "workoutDetails", userId, "days", day);
   const formattedWorkouts = workoutDetails.map((workout) => ({
     ...workout,
-    sets: Array.from({ length: 3 }, (_) => ({
-      reps: 15,
-      timePerRep: 4, // seconds
-      restAfterSet: 120, // seconds
-    })),
   }));
 
   try {
-    await setDoc(workoutsRef, { [day]: formattedWorkouts }, { merge: true });
+    await setDoc(dayRef, { workouts: formattedWorkouts, restDay: false }); // Explicitly mark as not a rest day
     console.log(
       `Successfully saved workouts for ${day} for ${userId}:`,
       JSON.stringify(formattedWorkouts, null, 2)
@@ -206,14 +179,35 @@ async function saveWorkoutDetails(
 }
 
 async function saveRestDay(userId: string, day: string) {
-  const workoutsRef = doc(firestore, "workoutDetails", userId);
+  const dayRef = doc(firestore, "workoutDetails", userId, "days", day);
   try {
-    await setDoc(workoutsRef, { [day]: "Rest Day" }, { merge: true });
+    await setDoc(dayRef, { workouts: [], restDay: true }); // Clear workouts and mark as a rest day
     console.log(`Successfully saved Rest Day for ${day} for ${userId}`);
   } catch (error) {
     console.error(
       `Error saving Rest Day for ${day} for ${userId}:`,
       JSON.stringify(error, null, 2)
+    );
+  }
+}
+
+async function deleteExistingWorkouts(userId: string) {
+  const daysRef = collection(firestore, "workoutDetails", userId, "days");
+  const snapshot = await getDocs(daysRef);
+
+  // Batch deletion to handle all documents at once
+  const batch = writeBatch(firestore);
+  snapshot.docs.forEach((doc) => {
+    batch.delete(doc.ref);
+  });
+
+  try {
+    await batch.commit();
+    console.log(`Successfully deleted existing workouts for user ${userId}`);
+  } catch (error) {
+    console.error(
+      `Error deleting existing workouts for user ${userId}:`,
+      error
     );
   }
 }
