@@ -28,15 +28,27 @@ import {
 const db = getFirestore();
 const auth = getAuth();
 
-interface ProfilePictureState {
-  uri: string;
-}
-
 interface WorkoutItemProps {
   title: string;
   muscles: string;
   imageSource: ImageSourcePropType;
   navigation: any;
+}
+
+interface Workout {
+  muscle: string; // Add more fields as necessary
+}
+
+interface WorkoutDetail {
+  title: string;
+  muscles: string;
+  imageSource: ImageSourcePropType;
+}
+
+interface WorkoutState {
+  title: string;
+  imageSource: ImageSourcePropType;
+  details?: WorkoutDetail[];
 }
 
 const placeholderImge = require("../assets/images/placeholder.png");
@@ -54,15 +66,34 @@ const Dashboard = ({ navigation }: { navigation: any }) => {
     breakfast: {
       title: "Loading...",
       image: require("../assets/images/placeholder.png"),
+      summary: "",
+      readyInMinutes: 0,
+      servings: 0,
+      nutrients: [],
+      instructions: [],
     },
     lunch: {
       title: "Loading...",
       image: require("../assets/images/placeholder.png"),
+      summary: "",
+      readyInMinutes: 0,
+      servings: 0,
+      nutrients: [],
+      instructions: [],
     },
     dinner: {
       title: "Loading...",
       image: require("../assets/images/placeholder.png"),
+      summary: "",
+      readyInMinutes: 0,
+      servings: 0,
+      nutrients: [],
+      instructions: [],
     },
+  });
+  const [workouts, setWorkouts] = useState<WorkoutState>({
+    title: "Loading...",
+    imageSource: require("../assets/images/placeholder.png"),
   });
 
   useEffect(() => {
@@ -86,18 +117,33 @@ const Dashboard = ({ navigation }: { navigation: any }) => {
             image:
               mealData.breakfast.image ||
               require("../assets/images/placeholder.png"),
+            summary: mealData.breakfast.summary,
+            readyInMinutes: mealData.breakfast.readyInMinutes,
+            servings: mealData.breakfast.servings,
+            nutrients: mealData.breakfast.nutrients,
+            instructions: mealData.breakfast.instructions,
           },
           lunch: {
             title: mealData.lunch.title,
             image:
               mealData.lunch.image ||
               require("../assets/images/placeholder.png"),
+            summary: mealData.lunch.summary,
+            readyInMinutes: mealData.lunch.readyInMinutes,
+            servings: mealData.lunch.servings,
+            nutrients: mealData.lunch.nutrients,
+            instructions: mealData.lunch.instructions,
           },
           dinner: {
             title: mealData.dinner.title,
             image:
               mealData.dinner.image ||
               require("../assets/images/placeholder.png"),
+            summary: mealData.dinner.summary,
+            readyInMinutes: mealData.dinner.readyInMinutes,
+            servings: mealData.dinner.servings,
+            nutrients: mealData.dinner.nutrients,
+            instructions: mealData.dinner.instructions,
           },
         });
       }
@@ -106,12 +152,77 @@ const Dashboard = ({ navigation }: { navigation: any }) => {
     return () => unsubscribe(); // Cleanup function to unsubscribe when the component unmounts or dependencies change
   }, [auth.currentUser]); // Dependency on currentUser to re-invoke when it changes
 
+  useEffect(() => {}, [meals]);
+
   useEffect(() => {
-    // console.log(
-    //   "Image URI using meals (updated state):",
-    //   meals.breakfast.image
-    // );
-  }, [meals]);
+    const fetchWorkouts = async () => {
+      if (!auth.currentUser) {
+        console.log("No user logged in.");
+        return;
+      }
+
+      const today = new Date().toLocaleDateString("en-us", { weekday: "long" });
+      const dayRef = doc(
+        db,
+        "workoutDetails",
+        auth.currentUser.uid,
+        "days",
+        today
+      );
+
+      const docSnap = await getDoc(dayRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.workouts && Array.isArray(data.workouts)) {
+          // Explicitly state the type of each workout using the 'Workout' interface
+          const workoutsData = data.workouts.map((workout: Workout) => ({
+            title: today,
+            muscles: workout.muscle,
+            imageSource: placeholderImge,
+          }));
+          const muscleGroups = [
+            ...new Set(workoutsData.map((workout) => workout.muscles)),
+          ];
+          // Map and join with proper types
+          const muscles = muscleGroups
+            .map((muscle) =>
+              muscle
+                .split(" ")
+                .map(
+                  (word: string) => word.charAt(0).toUpperCase() + word.slice(1)
+                )
+                .join(" ")
+            )
+            .join(" | ");
+          setWorkouts((prev) => ({
+            ...prev,
+            details: [
+              {
+                title: today,
+                muscles: muscles,
+                imageSource: placeholderImge,
+              },
+            ],
+          }));
+        } else {
+          setWorkouts((prev) => ({
+            ...prev,
+            details: [
+              {
+                title: today,
+                muscles: "Rest Day",
+                imageSource: placeholderImge,
+              },
+            ],
+          }));
+        }
+      } else {
+        console.log("No workout data found for today.");
+      }
+    };
+
+    fetchWorkouts();
+  }, [auth.currentUser]);
 
   const fetchUserData = async () => {
     const user = auth.currentUser;
@@ -288,16 +399,20 @@ const Dashboard = ({ navigation }: { navigation: any }) => {
               </TouchableOpacity>
             </View>
 
-            <WorkoutItem
-              title="Workout Group"
-              muscles="Work | out | target | muscles"
-              imageSource={placeholderImge}
-              navigation={navigation}
-            />
+            {workouts.details && workouts.details.length > 0 && (
+              <WorkoutItem
+                title={workouts.details[0].title}
+                muscles={workouts.details[0].muscles || "Rest Day"}
+                imageSource={workouts.details[0].imageSource}
+                navigation={navigation}
+              />
+            )}
           </View>
 
           <View style={styles.mealContainer}>
-            <Text style={styles.mealHeader}>Current Meal Plan</Text>
+            <View style={styles.headerContainer}>
+              <Text style={styles.mealHeader}>Current Meal Plan</Text>
+            </View>
             <ScrollView
               horizontal
               style={styles.mealItemsContainer}
@@ -307,16 +422,22 @@ const Dashboard = ({ navigation }: { navigation: any }) => {
                 title="Breakfast"
                 description={meals.breakfast.title}
                 imageSource={{ uri: meals.breakfast.image }}
+                navigation={navigation}
+                mealData={meals.breakfast}
               />
               <MealItem
                 title="Lunch"
                 description={meals.lunch.title}
                 imageSource={{ uri: meals.lunch.image }}
+                navigation={navigation}
+                mealData={meals.lunch}
               />
               <MealItem
                 title="Dinner"
                 description={meals.dinner.title}
                 imageSource={{ uri: meals.dinner.image }}
+                navigation={navigation}
+                mealData={meals.dinner}
               />
             </ScrollView>
           </View>
@@ -362,7 +483,7 @@ const WorkoutItem = ({
   return (
     <TouchableOpacity
       style={styles.workoutItem}
-      onPress={() => navigation.navigate("Workouts")}
+      onPress={() => navigation.navigate("WorkoutPlan")}
     >
       <Image source={placeholderImge} style={styles.workoutImage} />
       <View style={styles.overlay}>
@@ -389,9 +510,17 @@ interface MealItemProps {
   title: string;
   description: string;
   imageSource: any;
+  navigation: any;
+  mealData?: any;
 }
 
-const MealItem = ({ title, description, imageSource }: MealItemProps) => {
+const MealItem = ({
+  title,
+  description,
+  imageSource,
+  navigation,
+  mealData,
+}: MealItemProps) => {
   const validImageSource =
     imageSource &&
     typeof imageSource.uri === "string" &&
@@ -400,7 +529,10 @@ const MealItem = ({ title, description, imageSource }: MealItemProps) => {
       : placeholderImge;
 
   return (
-    <TouchableOpacity style={styles.mealItem}>
+    <TouchableOpacity
+      style={styles.mealItem}
+      onPress={() => navigation.navigate("MealDetails", { meal: mealData })}
+    >
       <Image source={validImageSource} style={styles.mealImage} />
       <View style={styles.overlay}>
         <Text style={styles.mealTitle} numberOfLines={1} ellipsizeMode="tail">
@@ -544,16 +676,17 @@ const styles = StyleSheet.create({
     padding: 10,
     marginTop: 110,
     borderRadius: 10,
-    justifyContent: "center",
+    justifyContent: "space-evenly",
     alignItems: "center",
+    opacity: 0.8,
   },
   workoutContainer: {
     marginTop: 1,
   },
   headerContainer: {
-    flexDirection: "row", // Align children in a row
-    justifyContent: "space-between", // Justify content to space between
-    alignItems: "center", // Align items to center vertically
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginTop: 1,
     paddingHorizontal: "7%",
   },
@@ -592,12 +725,13 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 17,
     fontFamily: "SFProRounded-Regular",
+    textAlign: "center",
   },
   workoutMuscles: {
     color: "#fff",
     fontSize: 13,
     fontFamily: "SFProText-Light",
-    marginTop: 10,
+    textAlign: "center",
   },
   mealContainer: {
     marginTop: 20,
@@ -611,8 +745,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: "SFProRounded-Heavy",
     color: "#fff",
-    marginBottom: "4%",
-    marginLeft: "7%",
   },
   mealItem: {
     width: screenWidth / 2.2,
@@ -625,25 +757,20 @@ const styles = StyleSheet.create({
   },
   mealImage: {
     width: "100%",
-    height: 180,
-    resizeMode: "cover",
-    marginTop: -20,
+    height: "100%",
     borderRadius: 10,
-    overflow: "hidden",
   },
   mealTitle: {
     color: "#fff",
     fontSize: 17,
     fontFamily: "SFProRounded-Regular",
-    marginTop: 5,
+    textAlign: "center",
   },
   mealDescription: {
     color: "#fff",
-    fontSize: 12,
+    fontSize: 13,
     fontFamily: "SFProText-Light",
-    marginBottom: 5,
-    marginTop: 10,
-    justifyContent: "center",
+    textAlign: "center",
   },
   navigation: {
     flexDirection: "row",
