@@ -71,7 +71,7 @@ const ScanEquipment = ({ navigation }: { navigation: any }) => {
         }
       } else {
         // Handle case where user is not logged in
-        console.log("User not authenticated");
+        // console.log("User not authenticated");
       }
     };
     fetchGyms();
@@ -101,7 +101,7 @@ const ScanEquipment = ({ navigation }: { navigation: any }) => {
       const newGymRef = doc(db, "Gyms", user.uid, "UserGyms", newGymName);
       setDoc(newGymRef, { created: new Date() })
         .then(() => {
-          console.log("New gym saved and selected");
+          // console.log("New gym saved and selected");
           const newGymsList = [...gyms, newGymName];
           setGyms(newGymsList);
           setSelectedGym(newGymName);
@@ -155,22 +155,22 @@ const ScanEquipment = ({ navigation }: { navigation: any }) => {
 
   const uploadGymEquipmentImage = async (uri: any, userId: any) => {
     try {
-      console.log("Fetching image from URI");
+      // console.log("Fetching image from URI");
       const response = await fetch(uri);
-      console.log("Converting to blob");
+      // console.log("Converting to blob");
       const blob = await response.blob();
-      console.log("Blob size:", blob.size);
-      console.log("Creating storage reference");
+      // console.log("Blob size:", blob.size);
+      // console.log("Creating storage reference");
       const storageRef = ref(
         storage,
         `GymEquipment/${userId}/${new Date().toISOString()}`
       );
-      console.log("Storage ref:", storageRef.fullPath);
-      console.log("Uploading bytes");
+      // console.log("Storage ref:", storageRef.fullPath);
+      // console.log("Uploading bytes");
       await uploadBytes(storageRef, blob);
-      console.log("Getting download URL");
+      // console.log("Getting download URL");
       const url = await getDownloadURL(storageRef);
-      console.log("Upload complete", url);
+      // console.log("Upload complete", url);
       return url;
     } catch (error) {
       console.error("Failed to upload image:", error);
@@ -209,7 +209,7 @@ const ScanEquipment = ({ navigation }: { navigation: any }) => {
           },
           {
             text: "Cancel",
-            onPress: () => console.log("Detection not saved."),
+            // onPress: () => console.log("Detection not saved."),
           },
         ]
       );
@@ -244,7 +244,7 @@ const ScanEquipment = ({ navigation }: { navigation: any }) => {
         imageUrl: imageUrl,
       });
 
-      console.log("Detection saved successfully.");
+      // console.log("Detection saved successfully.");
       Alert.alert("Success", "Detection has been saved to the database.");
     } catch (error) {
       console.error("Error saving detection:", error);
@@ -274,7 +274,7 @@ const ScanEquipment = ({ navigation }: { navigation: any }) => {
         overlayRef.current.setNativeProps({ pointerEvents: "none" });
       }
     });
-    console.log("Starting picture capture process...");
+    // console.log("Starting picture capture process...");
     setImage(null);
     const user = auth.currentUser;
     if (!user) {
@@ -292,21 +292,21 @@ const ScanEquipment = ({ navigation }: { navigation: any }) => {
     }
 
     try {
-      console.log("Taking picture...");
+      // console.log("Taking picture...");
       const photo = await cameraRef.current.takePictureAsync();
-      console.log("Picture taken:", photo.uri);
+      // console.log("Picture taken:", photo.uri);
 
       setImage(photo.uri);
-      console.log("Starting upload...");
+      // console.log("Starting upload...");
       const imageUrl = await uploadGymEquipmentImage(
         photo.uri,
         auth.currentUser.uid
       );
-      console.log("Image uploaded, URL:", imageUrl);
+      // console.log("Image uploaded, URL:", imageUrl);
 
-      console.log("Detecting equipment...");
+      // console.log("Detecting equipment...");
       await detectAndUploadEquipment(imageUrl, auth.currentUser.uid);
-      console.log("Equipment detection and upload complete.");
+      // console.log("Equipment detection and upload complete.");
     } catch (error) {
       let errorMessage = "Failed to do something exceptional";
       if (error instanceof Error) {
