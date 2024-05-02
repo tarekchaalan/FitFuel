@@ -53,7 +53,7 @@ const MealPlan = ({ navigation }: { navigation: any }) => {
 
   useEffect(() => {
     if (!user) {
-      console.log("UserId is undefined, skipping fetch");
+      // console.log("UserId is undefined, skipping fetch");
       return;
     }
 
@@ -62,10 +62,10 @@ const MealPlan = ({ navigation }: { navigation: any }) => {
       userDocRef,
       (doc) => {
         if (doc.exists()) {
-          console.log(
-            "Real-time update to meal data:",
-            JSON.stringify(doc.data(), null, 2)
-          );
+          // console.log(
+          //   "Real-time update to meal data:",
+          //   JSON.stringify(doc.data(), null, 2)
+          // );
           const userData = doc.data();
           setMealData({
             breakfast: userData.breakfast || {},
@@ -73,7 +73,7 @@ const MealPlan = ({ navigation }: { navigation: any }) => {
             dinner: userData.dinner || {},
           });
         } else {
-          console.log("No such document!");
+          // console.log("No such document!");
         }
       },
       (error) => {
@@ -92,10 +92,10 @@ const MealPlan = ({ navigation }: { navigation: any }) => {
 
         if (docSnap.exists()) {
           const userPreferences = docSnap.data() as UserPreferences; // Cast userPreferences to UserPreferences
-          console.log(
-            "User preferences fetched for regeneration:",
-            userPreferences
-          );
+          // console.log(
+          //   "User preferences fetched for regeneration:",
+          //   userPreferences
+          // );
           await createMealPlan(userPreferences, user.uid);
           Alert.alert("Meals Regenerated", "Your meal plan has been updated.");
         } else {

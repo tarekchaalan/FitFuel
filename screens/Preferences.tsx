@@ -133,7 +133,7 @@ const Preferences = ({ navigation }: { navigation: any }) => {
             setSelectedDietaryRestrictions(data.dietaryRestrictions || []);
             setSelectedTypesofWorkouts(data.typesOfWorkouts || []);
           } else {
-            console.log("No user preferences found.");
+            // console.log("No user preferences found.");
           }
         } catch (error) {
           console.error("Error fetching user preferences: ", error);
@@ -225,7 +225,7 @@ const Preferences = ({ navigation }: { navigation: any }) => {
         Alert.alert("Success", "Preferences saved successfully", [
           { text: "OK", onPress: () => navigation.navigate("Dashboard") },
         ]);
-        console.log("Preferences saved successfully");
+        // console.log("Preferences saved successfully");
         // Passing user.uid as a second argument to createMealPlan
         await createMealPlan(updatedPreferences, user.uid);
         await createWorkoutPlan(updatedPreferences, user.uid);

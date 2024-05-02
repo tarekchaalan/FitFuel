@@ -120,7 +120,7 @@ const Login = ({ navigation }: { navigation: any }) => {
       }
 
       if (userCredential.user) {
-        console.log("Logged in with identifier:", identifier);
+        // console.log("Logged in with identifier:", identifier);
         navigation.navigate("Dashboard");
       }
     } catch (error) {

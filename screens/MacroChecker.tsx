@@ -73,7 +73,7 @@ const MacroChecker = ({ navigation }: { navigation: any }) => {
         `https://world.openfoodfacts.org/api/v0/product/${barcode}.json`
       );
       const data = await response.json();
-      console.log(data);
+      // console.log(data);
       if (data.product) {
         const nutriments = data.product.nutriments || {};
         const productInfo = {
@@ -90,9 +90,9 @@ const MacroChecker = ({ navigation }: { navigation: any }) => {
           },
           nutriscore_grade: data.product.nutriscore_grade || "Unknown",
         };
-        console.log(productInfo.image_url);
-        console.log(productInfo.name);
-        console.log(productInfo.nutritional_info);
+        // console.log(productInfo.image_url);
+        // console.log(productInfo.name);
+        // console.log(productInfo.nutritional_info);
         setProductInfo(productInfo);
         navigation.navigate("BarcodeResults", { productInfo });
       } else {
@@ -103,7 +103,7 @@ const MacroChecker = ({ navigation }: { navigation: any }) => {
             {
               text: "OK",
               onPress: () => {
-                console.log("OK Pressed");
+                // console.log("OK Pressed");
                 setScanned(false); // Resetting the scanned state when user presses "OK"
               },
             },

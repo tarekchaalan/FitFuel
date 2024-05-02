@@ -30,7 +30,7 @@ const Profile = ({ navigation }: { navigation: any }) => {
         require("../assets/images/profile-placeholder.jpg");
       setProfilePicture(pictureSource);
     } else {
-      console.log("No user found");
+      // console.log("No user found");
     }
   }, [currentUser]);
 

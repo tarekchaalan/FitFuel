@@ -66,7 +66,7 @@ const EquipmentResult = ({ navigation }: { navigation: any }) => {
       });
       return () => unsubscribe();
     } else {
-      console.log("User not authenticated");
+      // console.log("User not authenticated");
     }
   }, [auth.currentUser]); // Dependency on currentUser ensures updates trigger re-fetch
 
@@ -100,7 +100,7 @@ const EquipmentResult = ({ navigation }: { navigation: any }) => {
         doc(db, "Gyms", user.uid, "UserGyms", selectedGym, "Scans", id)
       );
     } else {
-      console.log("User not authenticated");
+      // console.log("User not authenticated");
     }
   };
 
@@ -119,7 +119,7 @@ const EquipmentResult = ({ navigation }: { navigation: any }) => {
       await updateDoc(scanDoc, { class: currentEdit.class });
       setEditMode(false);
     } else {
-      console.log("User not authenticated or edit details missing");
+      // console.log("User not authenticated or edit details missing");
     }
   };
 
