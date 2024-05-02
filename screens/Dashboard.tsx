@@ -52,6 +52,8 @@ interface WorkoutState {
 }
 
 const placeholderImge = require("../assets/images/placeholder.png");
+const workoutImage = require("../assets/images/workout.jpg");
+const restdayImage = require("../assets/images/restday.png");
 
 const Dashboard = ({ navigation }: { navigation: any }) => {
   const { currentUser } = useUser();
@@ -178,7 +180,7 @@ const Dashboard = ({ navigation }: { navigation: any }) => {
           const workoutsData = data.workouts.map((workout: Workout) => ({
             title: today,
             muscles: workout.muscle,
-            imageSource: placeholderImge,
+            imageSource: workoutImage,
           }));
           const muscleGroups = [
             ...new Set(workoutsData.map((workout) => workout.muscles)),
@@ -200,7 +202,7 @@ const Dashboard = ({ navigation }: { navigation: any }) => {
               {
                 title: today,
                 muscles: muscles,
-                imageSource: placeholderImge,
+                imageSource: workoutImage,
               },
             ],
           }));
@@ -211,7 +213,7 @@ const Dashboard = ({ navigation }: { navigation: any }) => {
               {
                 title: today,
                 muscles: "Rest Day",
-                imageSource: placeholderImge,
+                imageSource: restdayImage,
               },
             ],
           }));
@@ -480,12 +482,19 @@ const WorkoutItem = ({
   imageSource,
   navigation,
 }: WorkoutItemProps) => {
+  const isRestDay = muscles.toLowerCase() === "rest day";
+
+  // Determine the image source based on the day type
+  const dayImageSource = isRestDay
+    ? require("../assets/images/restday.png")
+    : require("../assets/images/workout.jpg");
+
   return (
     <TouchableOpacity
       style={styles.workoutItem}
       onPress={() => navigation.navigate("WorkoutPlan")}
     >
-      <Image source={placeholderImge} style={styles.workoutImage} />
+      <Image source={dayImageSource} style={styles.workoutImage} />
       <View style={styles.overlay}>
         <Text
           style={styles.workoutTitle}

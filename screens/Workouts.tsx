@@ -38,7 +38,7 @@ interface ClickableItemProps {
   routeName: keyof RootStackParamList;
 }
 
-const gymimage = require("../assets/images/workout.jpg");
+const gymimage = require("../assets/images/scanequipment.png");
 const scheduleimage = require("../assets/images/calendar.jpg");
 const progressimage = require("../assets/images/progressupdate.png");
 
