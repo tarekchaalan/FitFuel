@@ -21,6 +21,7 @@ type RootStackParamList = {
   Profile: undefined;
   ScanEquipment: undefined;
   WorkoutPlan: undefined;
+  ProgressTracker: undefined;
 };
 
 type WorkoutsScreenNavigationProp = StackNavigationProp<RootStackParamList>;
@@ -39,6 +40,7 @@ interface ClickableItemProps {
 
 const gymimage = require("../assets/images/workout.jpg");
 const scheduleimage = require("../assets/images/calendar.jpg");
+const progressimage = require("../assets/images/progressupdate.png");
 
 const Workouts = ({ navigation }: WorkoutsProps) => {
   return (
@@ -55,6 +57,13 @@ const Workouts = ({ navigation }: WorkoutsProps) => {
           </View>
           <View style={styles.ItemContainer}>
             <ClickableItem
+              title="This Weeks Plan"
+              description="View your workouts in a day-to-day format"
+              imageSource={scheduleimage}
+              navigation={navigation}
+              routeName="WorkoutPlan"
+            />
+            <ClickableItem
               title="Scan Equipment (Private Gyms)"
               description="Let us create your customized workout plan"
               imageSource={gymimage}
@@ -62,11 +71,11 @@ const Workouts = ({ navigation }: WorkoutsProps) => {
               routeName="ScanEquipment"
             />
             <ClickableItem
-              title="This Weeks Plan"
-              description="View your workouts in a day-to-day format"
-              imageSource={scheduleimage}
+              title="Progress Updates"
+              description="Track your progress in a visual way!"
+              imageSource={progressimage}
               navigation={navigation}
-              routeName="WorkoutPlan"
+              routeName="ProgressTracker"
             />
           </View>
         </ScrollView>
@@ -179,7 +188,8 @@ const styles = StyleSheet.create({
     padding: 10,
     marginTop: 110,
     borderRadius: 10,
-    justifyContent: "flex-end",
+    opacity: 0.8,
+    justifyContent: "space-evenly",
     alignItems: "center",
   },
   ClickableItem: {

@@ -57,6 +57,13 @@ const Meals = ({ navigation }: MealProps) => {
           </View>
           <View style={styles.ItemContainer}>
             <ClickableItem
+              title="This Weeks Plan"
+              description="View your Meal Plan and recipes! "
+              imageSource={scheduleimage}
+              navigation={navigation}
+              routeName="MealPlan"
+            />
+            <ClickableItem
               title="Input Ingredients"
               description="Let us create your customized meal plan"
               imageSource={mealimage}
@@ -69,13 +76,6 @@ const Meals = ({ navigation }: MealProps) => {
               imageSource={scanfood}
               navigation={navigation}
               routeName="MacroChecker"
-            />
-            <ClickableItem
-              title="This Weeks Plan"
-              description="View your Meal Plan and recipes! "
-              imageSource={scheduleimage}
-              navigation={navigation}
-              routeName="MealPlan"
             />
           </View>
         </ScrollView>
@@ -177,7 +177,8 @@ const styles = StyleSheet.create({
     padding: 10,
     marginTop: 110,
     borderRadius: 10,
-    justifyContent: "flex-end",
+    opacity: 0.8,
+    justifyContent: "space-evenly",
     alignItems: "center",
   },
   ClickableItem: {
