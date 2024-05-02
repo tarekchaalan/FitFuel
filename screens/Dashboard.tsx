@@ -98,7 +98,7 @@ const Dashboard = ({ navigation }: { navigation: any }) => {
 
   useEffect(() => {
     if (!auth.currentUser) {
-      console.log("No user logged in.");
+      // console.log("No user logged in.");
       return;
     }
 
@@ -106,7 +106,7 @@ const Dashboard = ({ navigation }: { navigation: any }) => {
       doc(db, "mealDetails", auth.currentUser.uid),
       (doc) => {
         if (!doc.exists()) {
-          console.log("No meal data found.");
+          // console.log("No meal data found.");
           return;
         }
 
@@ -157,7 +157,7 @@ const Dashboard = ({ navigation }: { navigation: any }) => {
   useEffect(() => {
     const fetchWorkouts = async () => {
       if (!auth.currentUser) {
-        console.log("No user logged in.");
+        // console.log("No user logged in.");
         return;
       }
 
@@ -217,7 +217,7 @@ const Dashboard = ({ navigation }: { navigation: any }) => {
           }));
         }
       } else {
-        console.log("No workout data found for today.");
+        // console.log("No workout data found for today.");
       }
     };
 
@@ -243,7 +243,7 @@ const Dashboard = ({ navigation }: { navigation: any }) => {
           workoutFrequencyPerWeek =
             preferencesData.workoutFrequencyPerWeek || 0;
         } else {
-          console.log("No preferences found.");
+          // console.log("No preferences found.");
         }
       } catch (error) {
         console.error("Error fetching user preferences: ", error);
@@ -271,7 +271,7 @@ const Dashboard = ({ navigation }: { navigation: any }) => {
           setTotalWorkoutHours(totalWorkoutHours);
           setProgressPercentage(progress);
         } else {
-          console.log("No user data found.");
+          // console.log("No user data found.");
         }
       } catch (error) {
         console.error("Error fetching user data: ", error);
