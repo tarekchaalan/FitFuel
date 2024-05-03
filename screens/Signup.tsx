@@ -166,6 +166,7 @@ const Signup = ({ navigation }: { navigation: any }) => {
         profilePicture: profilePictureUrl,
       });
       Alert.alert("Verification email sent. Please check your email.");
+      navigation.navigate("Preferences");
       // temporary fix to show user data when navigated to app
     } catch (error) {
       const message = (error as Error).message;
@@ -357,6 +358,7 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     height: 50,
     fontSize: 16,
+    fontFamily: "SFProText-Regular",
     paddingHorizontal: 20,
     paddingVertical: 5,
     opacity: 0.8,
@@ -379,6 +381,7 @@ const styles = StyleSheet.create({
   },
   callingCodeText: {
     color: "#ffffff",
+    fontFamily: "SFProRounded-Regular",
     marginLeft: 5,
   },
   countryPickerButton: {},
@@ -386,6 +389,7 @@ const styles = StyleSheet.create({
     flex: 1,
     color: "#ffffff",
     fontSize: 16,
+    fontFamily: "SFProText-Regular",
     paddingHorizontal: 2,
     paddingVertical: 5,
   },
@@ -415,7 +419,7 @@ const styles = StyleSheet.create({
   SignUpButtonText: {
     color: "#ffffff",
     fontSize: 24,
-    fontWeight: "bold",
+    fontFamily: "SFProRounded-Heavy",
   },
   // orContainer: {
   //   flexDirection: "row",
@@ -431,10 +435,12 @@ const styles = StyleSheet.create({
   //   width: "7%",
   //   textAlign: "center",
   //   color: "#ffffff",
+  //   fontFamily: "SFProRounded-Heavy",
   // },
   // SUW: {
   //   alignItems: "center",
   //   marginBottom: "5%",
+  //   fontFamily: "SFProRounded-Heavy",
   // },
   // SUWText: {
   //   color: "#ffffff",
@@ -472,13 +478,13 @@ const styles = StyleSheet.create({
   //   color: "#000",
   //   marginLeft: 15,
   //   fontSize: 17,
-  //   fontWeight: "bold",
+  //   fontFamily: "SFProRounded-Heavy",
   // },
   // GithubButtonText: {
   //   color: "#000",
   //   marginLeft: 15,
   //   fontSize: 17,
-  //   fontWeight: "bold",
+  //   fontFamily: "SFProRounded-Heavy",
   // },
   LoginContainer: {
     marginTop: "10%",

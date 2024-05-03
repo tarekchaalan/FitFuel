@@ -4,9 +4,9 @@ import React, {
   useEffect,
   useContext,
   ReactNode,
-} from 'react';
-import {auth, firestore} from './firebase';
-import {doc, getDoc} from 'firebase/firestore';
+} from "react";
+import { auth, firestore } from "./firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 interface UserContextType {
   currentUser: User | null;
@@ -18,6 +18,8 @@ interface User {
   displayName?: string;
   photoURL?: string;
   username?: string;
+  email?: string;
+  phoneNumber?: string;
 }
 
 const UserContext = createContext<UserContextType>({
@@ -34,7 +36,7 @@ interface UserProviderProps {
   children: ReactNode; // Define the type for children
 }
 
-export const UserProvider: React.FC<UserProviderProps> = ({children}) => {
+export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -43,18 +45,20 @@ export const UserProvider: React.FC<UserProviderProps> = ({children}) => {
   };
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async user => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
-        const userRef = doc(firestore, 'users', user.uid);
+        const userRef = doc(firestore, "users", user.uid);
         const userSnap = await getDoc(userRef);
         if (userSnap.exists()) {
           const userData = userSnap.data();
           setCurrentUser({
-            displayName: user.displayName ?? undefined, // Use nullish coalescing to convert null to undefined
+            displayName: user.displayName ?? undefined,
             username: userData.username,
+            email: user.email ?? undefined,
+            phoneNumber: userData.phoneNumber,
             photoURL:
               user.photoURL ||
-              require('./assets/images/profile-placeholder.jpg'), // Assuming this require statement resolves to a string, otherwise handle accordingly
+              require("./assets/images/profile-placeholder.jpg"),
           });
         }
       } else {
@@ -67,7 +71,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({children}) => {
   }, []);
 
   return (
-    <UserContext.Provider value={{currentUser, loading, setUser}}>
+    <UserContext.Provider value={{ currentUser, loading, setUser }}>
       {!loading && children}
     </UserContext.Provider>
   );

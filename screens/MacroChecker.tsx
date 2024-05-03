@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
   grantText: {
     color: "#000",
     fontSize: 24,
-    fontWeight: "bold",
+        fontFamily: "SFProRounded-Heavy",
     textAlign: "center",
   },
   scanButton: {

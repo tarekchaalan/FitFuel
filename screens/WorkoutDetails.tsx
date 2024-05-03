@@ -102,12 +102,13 @@ const styles = StyleSheet.create({
 
   header: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontFamily: "SFProRounded-Heavy",
     marginTop: 20,
     color: "#fff", // White text color
   },
   content: {
     fontSize: 16,
+    fontFamily: "SFProRounded-Regular",
     marginBottom: 10,
     textTransform: "capitalize",
     color: "#fff", // White text color

@@ -86,7 +86,7 @@ const WorkoutPlan = ({ navigation }: { navigation: any }) => {
         </View>
         <Text style={styles.pageHeader}>Workout Plan</Text>
         <View style={styles.contentBox}>
-          <Text style={styles.subHeader}>
+          <Text style={styles.dayHeader}>
             {new Date().toLocaleDateString("en-us", { weekday: "long" })}
           </Text>
           <Text style={styles.restDayMessage}>You can rest today!</Text>
@@ -111,7 +111,7 @@ const WorkoutPlan = ({ navigation }: { navigation: any }) => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <BackIcon />
         </TouchableOpacity>
-        <Text style={styles.pageHeader}>Workout Schedule</Text>
+        <Text style={styles.pageHeader}>Workout Plan</Text>
         <Text style={styles.dayHeader}>
           {new Date().toLocaleDateString("en-us", { weekday: "long" })}
         </Text>
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
   },
   dayHeader: {
     fontSize: 28,
-    fontWeight: "bold",
+    fontFamily: "SFProRounded-Heavy",
     color: "#9A2CE8",
     textAlign: "center",
     marginBottom: "5%",
@@ -176,6 +176,7 @@ const styles = StyleSheet.create({
   },
   loading: {
     fontSize: 20,
+    fontFamily: "SFProRounded-Heavy",
     color: "#fff",
     textAlign: "center",
     justifyContent: "center",
@@ -202,7 +203,7 @@ const styles = StyleSheet.create({
   },
   muscleHeader: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontFamily: "SFProRounded-Heavy",
     color: "#fff",
     marginBottom: 5,
     textTransform: "capitalize", // This will capitalize the first letter of each word
@@ -214,11 +215,6 @@ const styles = StyleSheet.create({
     opacity: 0.2,
     marginBottom: 10,
   },
-  workoutText: {
-    fontSize: 16,
-    color: "#fff",
-    marginBottom: 5,
-  },
   workoutContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -227,29 +223,26 @@ const styles = StyleSheet.create({
     flex: 1, // Takes as much space as available
     textAlign: "left",
     fontSize: 16,
+    fontFamily: "SFProRounded-Regular",
     color: "#fff",
     marginBottom: 5,
   },
   repetitions: {
     textAlign: "right",
     fontSize: 16,
+    fontFamily: "SFProRounded-Regular",
     color: "#fff",
     marginBottom: 5,
   },
-
   contentBox: {
     padding: 20,
     alignItems: "center",
-  },
-  subHeader: {
-    fontSize: 20,
-    color: "#fff",
-    textTransform: "capitalize", // Capitalize each word
   },
   restDayMessage: {
     fontSize: 16,
     color: "#fff",
     marginTop: 10,
+    fontFamily: "SFProRounded-Regular",
     textTransform: "capitalize", // Capitalize each word
   },
 });

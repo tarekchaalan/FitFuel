@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
   },
   header: {
     fontSize: 36,
-    fontWeight: "bold",
+    fontFamily: "SFProRounded-Heavy",
     textAlign: "center",
     color: "#fff",
     marginVertical: 20,
@@ -281,6 +281,7 @@ const styles = StyleSheet.create({
   },
   plusIcon: {
     fontSize: 50,
+    fontFamily: "SFProRounded-Heavy",
     color: "#9A2CE8",
   },
   dateSection: {

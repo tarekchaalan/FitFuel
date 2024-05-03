@@ -277,6 +277,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     height: 50,
     fontSize: 16,
+    fontFamily: "SFProText-Regular",
     paddingHorizontal: 20,
     paddingVertical: 5,
     opacity: 0.8,
@@ -316,7 +317,7 @@ const styles = StyleSheet.create({
   loginButtonText: {
     color: "#ffffff",
     fontSize: 24,
-    fontWeight: "bold",
+    fontFamily: "SFProRounded-Heavy",
   },
   orContainer: {
     flexDirection: "row",
@@ -332,6 +333,7 @@ const styles = StyleSheet.create({
     width: "7%",
     textAlign: "center",
     color: "#fff",
+    fontFamily: "SFProText-Heavy",
   },
   LIW: {
     alignItems: "center",
@@ -340,7 +342,7 @@ const styles = StyleSheet.create({
   LIWText: {
     color: "#fff",
     fontSize: 26,
-    fontFamily: "SFProText-Regular",
+    fontFamily: "SFProText-Heavy",
   },
   socialLoginContainer: {
     flexDirection: "row",
@@ -373,13 +375,13 @@ const styles = StyleSheet.create({
     color: "#000",
     marginLeft: 15,
     fontSize: 17,
-    fontWeight: "bold",
+    fontFamily: "SFProRounded-Heavy",
   },
   GithubButtonText: {
     color: "#000",
     marginLeft: 15,
     fontSize: 17,
-    fontWeight: "bold",
+    fontFamily: "SFProRounded-Heavy",
   },
   signupContainer: {
     marginTop: "10%",

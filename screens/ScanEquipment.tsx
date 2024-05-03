@@ -570,13 +570,13 @@ const styles = StyleSheet.create({
   grantText: {
     color: "#000",
     fontSize: 24,
-    fontWeight: "bold",
+    fontFamily: "SFProRounded-Heavy",
     textAlign: "center",
   },
   textStyle: {
     color: "black",
     fontSize: 24,
-    fontWeight: "bold",
+    fontFamily: "SFProRounded-Heavy",
     textAlign: "center",
   },
   pageHeader: {
@@ -648,6 +648,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 10,
     backgroundColor: "#fff",
+    fontFamily: "SFProRounded-Regular",
     color: "#000",
   },
   saveButton: {
@@ -664,6 +665,7 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: "white",
     fontSize: 16,
+    fontFamily: "SFProRounded-Regular",
     textAlign: "center",
   },
   scanButton: {

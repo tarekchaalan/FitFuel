@@ -278,6 +278,7 @@ const styles = StyleSheet.create({
   },
   searchbarClosed: {
     fontSize: 18,
+    fontFamily: "SFProRounded-Regular",
     marginHorizontal: "5%",
     width: "90%",
     padding: 15,
@@ -294,6 +295,7 @@ const styles = StyleSheet.create({
   },
   searchbarOpen: {
     fontSize: 18,
+    fontFamily: "SFProRounded-Regular",
     marginHorizontal: "5%",
     width: "90%",
     padding: 15,
@@ -335,6 +337,7 @@ const styles = StyleSheet.create({
   suggestion: {
     padding: 10,
     fontSize: 16,
+    fontFamily: "SFProRounded-Light",
   },
   ingredientListItem: {
     flexDirection: "row",
@@ -350,6 +353,7 @@ const styles = StyleSheet.create({
   },
   ingredientName: {
     fontSize: 18,
+    fontFamily: "SFProRounded-Regular",
     color: "#fff",
   },
   deleteBox: {

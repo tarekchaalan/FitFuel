@@ -115,6 +115,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     height: 50,
     fontSize: 16,
+    fontFamily: "SFProText-Regular",
     paddingHorizontal: 20,
     marginBottom: 20,
   },

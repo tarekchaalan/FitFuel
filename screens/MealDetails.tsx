@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontWeight: "bold",
+    fontFamily: "SFProRounded-Heavy",
     color: "#fff",
     textAlign: "center",
     marginBottom: 20,
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
   },
   header: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontFamily: "SFProRounded-Heavy",
     color: "#fff",
     marginTop: 20,
     marginBottom: 10,
@@ -108,16 +108,19 @@ const styles = StyleSheet.create({
   text: {
     color: "#fff",
     fontSize: 16,
+    fontFamily: "SFProRounded-Regular",
     marginBottom: 20,
   },
   nutrient: {
     color: "#fff",
     fontSize: 16,
+    fontFamily: "SFProRounded-Regular",
     marginBottom: 10,
   },
   instruction: {
     color: "#fff",
     fontSize: 16,
+    fontFamily: "SFProRounded-Regular",
     marginBottom: 10,
     marginLeft: 10,
   },

@@ -282,9 +282,9 @@ const Preferences = ({ navigation }: { navigation: any }) => {
             key={index}
             style={[styles.tag, { backgroundColor: "#9A2CE8" }]}
           >
-            <Text style={[styles.tagText, { color: "#FFF" }]}>{item}</Text>
+            <Text style={{ color: "#FFF" }}>{item}</Text>
             <TouchableOpacity onPress={() => removeTag(field, index)}>
-              <Text style={[styles.tagRemoveText, { color: "#FFF" }]}>x</Text>
+              <Text style={[styles.tagRemoveText]}>x</Text>
             </TouchableOpacity>
           </View>
         ))}
@@ -695,7 +695,6 @@ const styles = StyleSheet.create({
     marginLeft: "6%",
     fontSize: 24,
     color: "#9A2CE8",
-    fontWeight: "bold",
     fontFamily: "SFProRounded-Heavy",
   },
   section: {
@@ -714,7 +713,7 @@ const styles = StyleSheet.create({
   sectionHeader: {
     fontSize: 24,
     color: "#FFF",
-    fontWeight: "bold",
+    fontFamily: "SFProRounded-Heavy",
   },
   preferredContainer: {
     flexDirection: "row",
@@ -723,6 +722,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 18,
     color: "#FFF",
+    fontFamily: "SFProRounded-Regular",
     marginBottom: "3%",
   },
   subLabel: {
@@ -754,6 +754,7 @@ const styles = StyleSheet.create({
   },
   optionText: {
     color: "#FFF",
+    fontFamily: "SFProRounded-Regular",
     fontSize: 18,
   },
   button: {
@@ -767,6 +768,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#FFF",
     fontSize: 18,
+    fontFamily: "SFProRounded-Regular",
   },
   tagsInputContainer: {
     flexDirection: "row",
@@ -779,6 +781,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 10,
     fontSize: 16,
+    fontFamily: "SFProRounded-Regular",
     minWidth: "30%",
     maxWidth: "93%",
     height: 30,
@@ -797,11 +800,13 @@ const styles = StyleSheet.create({
   tagText: {
     color: "#FFF",
     fontSize: 14,
+    fontFamily: "SFProRounded-Regular",
   },
   tagRemoveText: {
     color: "#FFF",
     marginLeft: 10,
-    fontSize: 16,
+    fontSize: 18,
+    fontFamily: "SFProRounded-Heavy",
   },
   tagsContainer: {
     flexDirection: "row",

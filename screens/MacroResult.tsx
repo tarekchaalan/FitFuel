@@ -175,7 +175,7 @@ const MacroResult = ({ navigation }: { navigation: any }) => {
                     backgroundColor: getNutriScoreColor(scan.nutriscore_grade),
                   }}
                 >
-                  <Text style={{ color: "#fff", fontWeight: "bold" }}>
+                  <Text style={{ color: "#fff", fontFamily: "SFProRounded-Heavy" }}>
                     {scan.nutriscore_grade.toUpperCase()}
                   </Text>
                 </View>
@@ -268,6 +268,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 18,
+    fontFamily: "SFProRounded-Regular",
     color: "#fff",
     textAlign: "center",
   },

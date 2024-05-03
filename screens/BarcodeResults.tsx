@@ -185,12 +185,11 @@ const styles = StyleSheet.create({
   productName: {
     fontSize: 24, // Increase font size
     color: "#fff", // Set text color to white
-    fontWeight: "bold", // Make product name bold
+    fontFamily: "SFProRounded-Heavy",
     textAlign: "center",
     marginBottom: 20,
   },
   nutritionalInfo: {
-    color: "#fff",
     alignSelf: "stretch",
     marginBottom: 20,
   },
@@ -214,6 +213,7 @@ const styles = StyleSheet.create({
   nutrientText: {
     // Style for both nutrient names and values
     fontSize: 20,
+    fontFamily: "SFProText-Regular",
     color: "#fff",
     marginLeft: 10,
   },
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
   },
   nutriScoreText: {
     color: "#fff",
-    fontWeight: "bold",
+    fontFamily: "SFProRounded-Heavy",
   },
   buttonRow: {
     flexDirection: "row",
@@ -252,6 +252,7 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 18,
     color: "#fff",
+    fontFamily: "SFProRounded-Regular",
     textAlign: "center",
   },
 });
