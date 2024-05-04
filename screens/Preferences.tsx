@@ -1,3 +1,6 @@
+// Tarek Chaalan
+// Project Completed: May 3, 2024
+
 import React, { useState, useEffect } from "react";
 import {
   ScrollView,
@@ -136,7 +139,7 @@ const Preferences = ({ navigation }: { navigation: any }) => {
             // console.log("No user preferences found.");
           }
         } catch (error) {
-          console.error("Error fetching user preferences: ", error);
+          // console.error("Error fetching user preferences: ", error);
         }
       }
     };
@@ -230,7 +233,7 @@ const Preferences = ({ navigation }: { navigation: any }) => {
         await createMealPlan(updatedPreferences, user.uid);
         await createWorkoutPlan(updatedPreferences, user.uid);
       } catch (error) {
-        console.error("Error saving to Firestore:", error);
+        // console.error("Error saving to Firestore:", error);
         Alert.alert("Error", "Failed to save preferences.");
       }
     } else {

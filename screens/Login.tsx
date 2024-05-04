@@ -1,3 +1,6 @@
+// Tarek Chaalan
+// Project Completed: May 3, 2024
+
 import React, { useState } from "react";
 import {
   View,
@@ -15,7 +18,6 @@ import { ScrollView } from "react-native-gesture-handler";
 import { auth } from "../firebase";
 import {
   signInWithEmailAndPassword,
-  signInWithCredential,
   // GoogleAuthProvider,
 } from "firebase/auth";
 import {
@@ -124,7 +126,7 @@ const Login = ({ navigation }: { navigation: any }) => {
         navigation.navigate("Dashboard");
       }
     } catch (error) {
-      console.error(error);
+      // console.error(error);
       Alert.alert(
         "Login Failed",
         "Please check your credentials and try again."

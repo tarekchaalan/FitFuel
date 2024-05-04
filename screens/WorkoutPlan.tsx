@@ -1,3 +1,6 @@
+// Tarek Chaalan
+// Project Completed: May 3, 2024
+
 import React, { useState, useEffect } from "react";
 import {
   StyleSheet,

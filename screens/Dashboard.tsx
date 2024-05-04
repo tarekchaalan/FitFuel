@@ -1,3 +1,6 @@
+// Tarek Chaalan
+// Project Completed: May 3, 2024
+
 import React, { useState, useEffect, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import {
@@ -56,7 +59,6 @@ const workoutImage = require("../assets/images/workout.jpg");
 const restdayImage = require("../assets/images/restday.png");
 
 const Dashboard = ({ navigation }: { navigation: any }) => {
-  const { currentUser } = useUser();
   const [fullName, setFullName] = useState<string>("");
   const [profilePicture, setProfilePicture] = useState(
     require("../assets/images/profile-placeholder.jpg")
@@ -93,9 +95,14 @@ const Dashboard = ({ navigation }: { navigation: any }) => {
       instructions: [],
     },
   });
-  const [workouts, setWorkouts] = useState<WorkoutState>({
-    title: "Loading...",
-    imageSource: require("../assets/images/placeholder.png"),
+  const [workouts, setWorkouts] = useState({
+    details: [
+      {
+        title: "Loading...",
+        muscles: "Please fill in your preferences",
+        imageSource: require("../assets/images/placeholder.png"),
+      },
+    ],
   });
 
   useEffect(() => {
@@ -125,28 +132,48 @@ const Dashboard = ({ navigation }: { navigation: any }) => {
             nutrients: mealData.breakfast.nutrients,
             instructions: mealData.breakfast.instructions,
           },
-          lunch: {
-            title: mealData.lunch.title,
-            image:
-              mealData.lunch.image ||
-              require("../assets/images/placeholder.png"),
-            summary: mealData.lunch.summary,
-            readyInMinutes: mealData.lunch.readyInMinutes,
-            servings: mealData.lunch.servings,
-            nutrients: mealData.lunch.nutrients,
-            instructions: mealData.lunch.instructions,
-          },
-          dinner: {
-            title: mealData.dinner.title,
-            image:
-              mealData.dinner.image ||
-              require("../assets/images/placeholder.png"),
-            summary: mealData.dinner.summary,
-            readyInMinutes: mealData.dinner.readyInMinutes,
-            servings: mealData.dinner.servings,
-            nutrients: mealData.dinner.nutrients,
-            instructions: mealData.dinner.instructions,
-          },
+          lunch: mealData.lunch
+            ? {
+                title: mealData.lunch.title,
+                image:
+                  mealData.lunch.image ||
+                  require("../assets/images/placeholder.png"),
+                summary: mealData.lunch.summary,
+                readyInMinutes: mealData.lunch.readyInMinutes,
+                servings: mealData.lunch.servings,
+                nutrients: mealData.lunch.nutrients,
+                instructions: mealData.lunch.instructions,
+              }
+            : {
+                title: "Loading...",
+                image: require("../assets/images/placeholder.png"),
+                summary: "",
+                readyInMinutes: 0,
+                servings: 0,
+                nutrients: [],
+                instructions: [],
+              },
+          dinner: mealData.dinner
+            ? {
+                title: mealData.dinner.title,
+                image:
+                  mealData.dinner.image ||
+                  require("../assets/images/placeholder.png"),
+                summary: mealData.dinner.summary,
+                readyInMinutes: mealData.dinner.readyInMinutes,
+                servings: mealData.dinner.servings,
+                nutrients: mealData.dinner.nutrients,
+                instructions: mealData.dinner.instructions,
+              }
+            : {
+                title: "Loading...",
+                image: require("../assets/images/placeholder.png"),
+                summary: "",
+                readyInMinutes: 0,
+                servings: 0,
+                nutrients: [],
+                instructions: [],
+              },
         });
       }
     );
@@ -157,73 +184,75 @@ const Dashboard = ({ navigation }: { navigation: any }) => {
   useEffect(() => {}, [meals]);
 
   useEffect(() => {
-    const fetchWorkouts = async () => {
-      if (!auth.currentUser) {
-        // console.log("No user logged in.");
-        return;
-      }
+    const user = auth.currentUser;
+    if (!user) {
+      // console.log("No user logged in.");
+      return;
+    }
 
-      const today = new Date().toLocaleDateString("en-us", { weekday: "long" });
-      const dayRef = doc(
-        db,
-        "workoutDetails",
-        auth.currentUser.uid,
-        "days",
-        today
-      );
+    const today = new Date().toLocaleDateString("en-us", { weekday: "long" });
+    const dayRef = doc(db, "workoutDetails", user.uid, "days", today);
 
-      const docSnap = await getDoc(dayRef);
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        if (data.workouts && Array.isArray(data.workouts)) {
-          // Explicitly state the type of each workout using the 'Workout' interface
-          const workoutsData = data.workouts.map((workout: Workout) => ({
-            title: today,
-            muscles: workout.muscle,
-            imageSource: workoutImage,
-          }));
-          const muscleGroups = [
-            ...new Set(workoutsData.map((workout) => workout.muscles)),
-          ];
-          // Map and join with proper types
-          const muscles = muscleGroups
-            .map((muscle) =>
-              muscle
-                .split(" ")
-                .map(
-                  (word: string) => word.charAt(0).toUpperCase() + word.slice(1)
-                )
-                .join(" ")
-            )
-            .join(" | ");
-          setWorkouts((prev) => ({
-            ...prev,
-            details: [
-              {
-                title: today,
-                muscles: muscles,
-                imageSource: workoutImage,
-              },
-            ],
-          }));
+    // console.log("Setting up subscription for workout details");
+    const unsubscribe = onSnapshot(
+      dayRef,
+      (docSnap) => {
+        // console.log("Received workout data snapshot:", docSnap.exists());
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          // console.log("Workout data:", data);
+          if (data.workouts && Array.isArray(data.workouts)) {
+            const workoutsData = data.workouts.map((workout: Workout) => ({
+              title: today,
+              muscles: workout.muscle,
+              imageSource: workoutImage,
+            }));
+            const muscleGroups = [
+              ...new Set(workoutsData.map((workout) => workout.muscles)),
+            ];
+            const muscles = muscleGroups
+              .map((muscle) =>
+                muscle
+                  .split(" ")
+                  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                  .join(" ")
+              )
+              .join(" | ");
+            setWorkouts({
+              details: [{ title: today, muscles, imageSource: workoutImage }],
+            });
+          } else {
+            // console.log("No workouts today, setting rest day");
+            setWorkouts({
+              details: [
+                {
+                  title: today,
+                  muscles: "Rest Day",
+                  imageSource: restdayImage,
+                },
+              ],
+            });
+          }
         } else {
+          // console.log("No workout data found for today, setting placeholder");
           setWorkouts((prev) => ({
             ...prev,
             details: [
               {
-                title: today,
-                muscles: "Rest Day",
-                imageSource: restdayImage,
+                title: "Loading...",
+                muscles: "Please fill in your preferences",
+                imageSource: placeholderImge,
               },
             ],
           }));
         }
-      } else {
-        // console.log("No workout data found for today.");
+      },
+      (error) => {
+        // console.error("Error fetching workout details:", error);
       }
-    };
+    );
 
-    fetchWorkouts();
+    return () => unsubscribe();
   }, [auth.currentUser]);
 
   const fetchUserData = async () => {
@@ -248,7 +277,7 @@ const Dashboard = ({ navigation }: { navigation: any }) => {
           // console.log("No preferences found.");
         }
       } catch (error) {
-        console.error("Error fetching user preferences: ", error);
+        // console.error("Error fetching user preferences: ", error);
       }
 
       // Fetch user data
@@ -276,22 +305,37 @@ const Dashboard = ({ navigation }: { navigation: any }) => {
           // console.log("No user data found.");
         }
       } catch (error) {
-        console.error("Error fetching user data: ", error);
+        // console.error("Error fetching user data: ", error);
       }
     }
   };
 
   useEffect(() => {
-    if (currentUser) {
-      setFullName(currentUser.displayName || "Name not found");
-      const pictureSource =
-        currentUser.photoURL ||
-        require("../assets/images/profile-placeholder.jpg");
-      setProfilePicture(pictureSource);
-      // console.log("Profile Picture URI:", pictureSource);
-      fetchUserData();
+    const user = auth.currentUser;
+    if (user) {
+      const userRef = doc(db, "users", user.uid);
+      const unsubscribe = onSnapshot(
+        userRef,
+        (doc) => {
+          if (doc.exists()) {
+            const userData = doc.data();
+            setFullName(userData.fullName || "Name not found");
+            setProfilePicture(
+              userData.profilePicture ||
+                require("../assets/images/profile-placeholder.jpg")
+            );
+          } else {
+            // console.log("No user data found.");
+          }
+        },
+        (error) => {
+          // console.error("Error fetching user data:", error);
+        }
+      );
+
+      return () => unsubscribe(); // Cleanup to unsubscribe from the listener when the component unmounts or user changes
     }
-  }, [currentUser]);
+  }, [auth.currentUser]); // Depend on auth.currentUser to re-invoke when it changes
 
   // Focus effect for re-fetching data when navigating back to the Dashboard
   useFocusEffect(
@@ -317,7 +361,7 @@ const Dashboard = ({ navigation }: { navigation: any }) => {
         // Optionally refetch user data if needed
         fetchUserData();
       } catch (error) {
-        console.error("Error updating total workouts: ", error);
+        // console.error("Error updating total workouts: ", error);
         alert("Failed to log workout. Please try again later.");
       }
     } else {
@@ -476,13 +520,8 @@ const Dashboard = ({ navigation }: { navigation: any }) => {
   );
 };
 
-const WorkoutItem = ({
-  title,
-  muscles,
-  imageSource,
-  navigation,
-}: WorkoutItemProps) => {
-  const isRestDay = muscles.toLowerCase() === "rest day";
+const WorkoutItem = ({ title, muscles, navigation }: WorkoutItemProps) => {
+  const isRestDay = muscles.toLowerCase().includes("rest day");
 
   // Determine the image source based on the day type
   const dayImageSource = isRestDay

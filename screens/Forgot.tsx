@@ -1,3 +1,6 @@
+// Tarek Chaalan
+// Project Completed: May 3, 2024
+
 import React, { useState } from "react";
 import {
   View,
@@ -26,7 +29,7 @@ const Forgot = ({ navigation }: { navigation: any }) => {
       Alert.alert("Password reset email sent successfully.");
       navigation.navigate("Login");
     } catch (error) {
-      console.error("Failed to send password reset email:", error);
+      // console.error("Failed to send password reset email:", error);
       Alert.alert("Failed to send password reset email. Please try again.");
     }
   };

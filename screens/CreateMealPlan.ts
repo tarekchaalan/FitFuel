@@ -1,7 +1,10 @@
+// Tarek Chaalan
+// Project Completed: May 3, 2024
+
 import axios from "axios";
 import { Alert } from "react-native";
 import { firestore } from "../firebase";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
 
 interface UserPreferences {
   query: string;

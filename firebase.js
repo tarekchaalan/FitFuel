@@ -1,4 +1,6 @@
-// Firebase.tsx
+// Tarek Chaalan
+// Project Completed: May 3, 2024
+
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";

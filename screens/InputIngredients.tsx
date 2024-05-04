@@ -1,3 +1,6 @@
+// Tarek Chaalan
+// Project Completed: May 3, 2024
+
 import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
@@ -72,7 +75,7 @@ const InputIngredients = ({ navigation }: { navigation: any }) => {
           const response = await axios.request(options);
           setIngredients(response.data);
         } catch (error) {
-          console.error("Error fetching ingredients:", error);
+          // console.error("Error fetching ingredients:", error);
         }
         setIsLoading(false);
       };
@@ -121,7 +124,7 @@ const InputIngredients = ({ navigation }: { navigation: any }) => {
         await addDoc(ingredientsRef, newIngredient);
         fetchIngredients(user.uid); // Re-fetch ingredients to update the list
       } catch (error) {
-        console.error("Error adding ingredient:", error);
+        // console.error("Error adding ingredient:", error);
       }
       setQuery("");
       Keyboard.dismiss();

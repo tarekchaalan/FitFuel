@@ -1,3 +1,6 @@
+// Tarek Chaalan
+// Project Completed: May 3, 2024
+
 import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
@@ -175,7 +178,9 @@ const MacroResult = ({ navigation }: { navigation: any }) => {
                     backgroundColor: getNutriScoreColor(scan.nutriscore_grade),
                   }}
                 >
-                  <Text style={{ color: "#fff", fontFamily: "SFProRounded-Heavy" }}>
+                  <Text
+                    style={{ color: "#fff", fontFamily: "SFProRounded-Heavy" }}
+                  >
                     {scan.nutriscore_grade.toUpperCase()}
                   </Text>
                 </View>

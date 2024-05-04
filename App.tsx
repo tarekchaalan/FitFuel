@@ -1,3 +1,6 @@
+// Tarek Chaalan
+// Project Completed: May 3, 2024
+
 import React, { useState, useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
@@ -56,7 +59,7 @@ function App() {
           "SFProRounded-Ultralight": require("./assets/fonts/SF Pro Rounded/SF-Pro-Rounded-Ultralight.otf"),
         });
       } catch (e) {
-        console.warn(e);
+        // console.warn(e);
       } finally {
         setFontsLoaded(true);
         SplashScreen.hideAsync();

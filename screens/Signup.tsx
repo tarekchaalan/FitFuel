@@ -1,3 +1,6 @@
+// Tarek Chaalan
+// Project Completed: May 3, 2024
+
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -165,8 +168,8 @@ const Signup = ({ navigation }: { navigation: any }) => {
         email: email,
         profilePicture: profilePictureUrl,
       });
-      Alert.alert("Verification email sent. Please check your email.");
       navigation.navigate("Preferences");
+      Alert.alert("Verification email sent. Please check your email.");
       // temporary fix to show user data when navigated to app
     } catch (error) {
       const message = (error as Error).message;

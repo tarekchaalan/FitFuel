@@ -1,4 +1,6 @@
-// screens/BarcodeResults.tsx
+// Tarek Chaalan
+// Project Completed: May 3, 2024
+
 import React from "react";
 import {
   View,
@@ -51,7 +53,7 @@ const saveScan = async (scanData: any, navigation: any) => {
       Alert.alert("Scan saved in Macro Results successfully");
       navigation.navigate("MacroResult");
     } catch (error) {
-      console.error("Error saving scan: ", error);
+      // console.error("Error saving scan: ", error);
       Alert.alert("Failed to save scan");
     }
   } else {

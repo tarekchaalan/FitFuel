@@ -1,3 +1,6 @@
+// Tarek Chaalan
+// Project Completed: May 3, 2024
+
 import React, { useState, useEffect, useRef } from "react";
 import {
   StyleSheet,
@@ -11,7 +14,6 @@ import {
   Alert,
   Animated,
   TextInput,
-  Button,
 } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import { BackIcon, ResultsIcon, DownArrow, XButton } from "../svgs";
@@ -108,7 +110,7 @@ const ScanEquipment = ({ navigation }: { navigation: any }) => {
           setIsNewGymModalVisible(false);
         })
         .catch((error) => {
-          console.error("Error saving new gym:", error);
+          // console.error("Error saving new gym:", error);
           Alert.alert("Error", "Failed to save new gym");
         });
     } else {
@@ -130,7 +132,7 @@ const ScanEquipment = ({ navigation }: { navigation: any }) => {
         setSelectedGym(updatedGyms[0] || "");
         Alert.alert("Success", "Gym deleted successfully.");
       } catch (error) {
-        console.error("Error deleting gym:", error);
+        // console.error("Error deleting gym:", error);
         Alert.alert("Error", "Failed to delete gym.");
       }
     } else {
@@ -173,7 +175,7 @@ const ScanEquipment = ({ navigation }: { navigation: any }) => {
       // console.log("Upload complete", url);
       return url;
     } catch (error) {
-      console.error("Failed to upload image:", error);
+      // console.error("Failed to upload image:", error);
       Alert.alert("Upload Error", "Failed to upload image.");
       throw error;
     }
@@ -203,18 +205,18 @@ const ScanEquipment = ({ navigation }: { navigation: any }) => {
         `We detected: ${highestConfidencePrediction.class} with a confidence of ${confidencePercentage}%. Do you want to save this detection?`,
         [
           {
+            text: "Cancel",
+            // onPress: () => console.log("Detection not saved."),
+          },
+          {
             text: "Save",
             onPress: () =>
               saveDetection(highestConfidencePrediction, userId, imageUrl),
           },
-          {
-            text: "Cancel",
-            // onPress: () => console.log("Detection not saved."),
-          },
         ]
       );
     } catch (error) {
-      console.error("Error detecting equipment:", error);
+      // console.error("Error detecting equipment:", error);
       Alert.alert(
         "Detection Error",
         "An error occurred during equipment detection."
@@ -247,7 +249,7 @@ const ScanEquipment = ({ navigation }: { navigation: any }) => {
       // console.log("Detection saved successfully.");
       Alert.alert("Success", "Detection has been saved to the database.");
     } catch (error) {
-      console.error("Error saving detection:", error);
+      // console.error("Error saving detection:", error);
       Alert.alert("Save Error", "Failed to save detection.");
     }
   };
@@ -274,52 +276,29 @@ const ScanEquipment = ({ navigation }: { navigation: any }) => {
         overlayRef.current.setNativeProps({ pointerEvents: "none" });
       }
     });
-    // console.log("Starting picture capture process...");
-    setImage(null);
-    const user = auth.currentUser;
-    if (!user) {
-      console.error("No user logged in");
-      Alert.alert(
-        "User Error",
-        "You must be logged in to perform this action."
-      );
-      return;
-    }
-
-    if (!cameraRef.current || !auth.currentUser) {
-      Alert.alert("Error", "Camera not ready or user not authenticated");
-      return;
-    }
 
     try {
-      // console.log("Taking picture...");
-      const photo = await cameraRef.current.takePictureAsync();
-      // console.log("Picture taken:", photo.uri);
-
-      setImage(photo.uri);
-      // console.log("Starting upload...");
-      const imageUrl = await uploadGymEquipmentImage(
-        photo.uri,
-        auth.currentUser.uid
-      );
-      // console.log("Image uploaded, URL:", imageUrl);
-
-      // console.log("Detecting equipment...");
-      await detectAndUploadEquipment(imageUrl, auth.currentUser.uid);
-      // console.log("Equipment detection and upload complete.");
-    } catch (error) {
-      let errorMessage = "Failed to do something exceptional";
-      if (error instanceof Error) {
-        errorMessage = error.message;
+      const user = auth.currentUser;
+      if (!user) {
+        throw new Error("You must be logged in to perform this action.");
       }
 
-      console.error(
-        "Error during the capture or upload process:",
-        errorMessage
-      );
+      if (!cameraRef.current) {
+        throw new Error("Camera not ready or user not authenticated");
+      }
+
+      const photo = await cameraRef.current.takePictureAsync({
+        quality: 0.7,
+      });
+      setImage(photo.uri);
+
+      const imageUrl = await uploadGymEquipmentImage(photo.uri, user.uid);
+      await detectAndUploadEquipment(imageUrl, user.uid);
+    } catch (error) {
+      // console.error("Error during the capture or upload process:", error);
       Alert.alert(
         "Capture or Upload Error",
-        errorMessage || "An error occurred"
+        (error as Error).message || "An unexpected error occurred"
       );
     }
   };
@@ -496,7 +475,6 @@ const ScanEquipment = ({ navigation }: { navigation: any }) => {
           >
             <View style={styles.captureButtonInner} />
           </TouchableOpacity>
-          {/* Snap Effect Overlay */}
           <Animated.View
             ref={overlayRef}
             style={[

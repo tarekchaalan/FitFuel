@@ -1,3 +1,6 @@
+// Tarek Chaalan
+// Project Completed: May 3, 2024
+
 import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
@@ -77,7 +80,7 @@ const MealPlan = ({ navigation }: { navigation: any }) => {
         }
       },
       (error) => {
-        console.error("Error fetching meals:", error);
+        // console.error("Error fetching meals:", error);
       }
     );
 
@@ -99,14 +102,14 @@ const MealPlan = ({ navigation }: { navigation: any }) => {
           await createMealPlan(userPreferences, user.uid);
           Alert.alert("Meals Regenerated", "Your meal plan has been updated.");
         } else {
-          console.error("No preferences found for the user.");
+          // console.error("No preferences found for the user.");
           Alert.alert(
             "Error",
             "No preferences found. Please set your preferences first."
           );
         }
       } catch (error) {
-        console.error("Error regenerating meals:", error);
+        // console.error("Error regenerating meals:", error);
         Alert.alert("Error", "Failed to regenerate meals.");
       }
     } else {

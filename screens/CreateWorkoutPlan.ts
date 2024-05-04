@@ -1,3 +1,6 @@
+// Tarek Chaalan
+// Project Completed: May 3, 2024
+
 import { firestore } from "../firebase";
 import {
   doc,
@@ -133,10 +136,10 @@ async function fetchExercises(
     );
 
     if (!response.ok) {
-      console.error(
-        "HTTP error!",
-        JSON.stringify(await response.json(), null, 2)
-      );
+      // console.error(
+      //   "HTTP error!",
+      //   JSON.stringify(await response.json(), null, 2)
+      // );
       continue;
     }
 
@@ -171,10 +174,10 @@ async function saveWorkoutDetails(
     //   JSON.stringify(formattedWorkouts, null, 2)
     // );
   } catch (error) {
-    console.error(
-      `Error saving workouts for ${day} for ${userId}:`,
-      JSON.stringify(error, null, 2)
-    );
+    // console.error(
+    //   `Error saving workouts for ${day} for ${userId}:`,
+    //   JSON.stringify(error, null, 2)
+    // );
   }
 }
 
@@ -184,10 +187,10 @@ async function saveRestDay(userId: string, day: string) {
     await setDoc(dayRef, { workouts: [], restDay: true }); // Clear workouts and mark as a rest day
     // console.log(`Successfully saved Rest Day for ${day} for ${userId}`);
   } catch (error) {
-    console.error(
-      `Error saving Rest Day for ${day} for ${userId}:`,
-      JSON.stringify(error, null, 2)
-    );
+    // console.error(
+    //   `Error saving Rest Day for ${day} for ${userId}:`,
+    //   JSON.stringify(error, null, 2)
+    // );
   }
 }
 
@@ -205,9 +208,9 @@ async function deleteExistingWorkouts(userId: string) {
     await batch.commit();
     // console.log(`Successfully deleted existing workouts for user ${userId}`);
   } catch (error) {
-    console.error(
-      `Error deleting existing workouts for user ${userId}:`,
-      error
-    );
+    // console.error(
+    //   `Error deleting existing workouts for user ${userId}:`,
+    //   error
+    // );
   }
 }

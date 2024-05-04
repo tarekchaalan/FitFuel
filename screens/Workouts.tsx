@@ -1,3 +1,6 @@
+// Tarek Chaalan
+// Project Completed: May 3, 2024
+
 import React from "react";
 import {
   StyleSheet,
@@ -6,7 +9,6 @@ import {
   Image,
   TouchableOpacity,
   ScrollView,
-  Dimensions,
   SafeAreaView,
   StatusBar,
   ImageSourcePropType,

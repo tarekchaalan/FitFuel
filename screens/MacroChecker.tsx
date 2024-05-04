@@ -1,3 +1,6 @@
+// Tarek Chaalan
+// Project Completed: May 3, 2024
+
 import React, { useState, useCallback } from "react";
 import {
   StyleSheet,
@@ -13,7 +16,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { BackIcon, ResultsIcon } from "../svgs";
 import { CameraView, Camera } from "expo-camera/next";
 import { getAuth } from "firebase/auth";
-import { doc, setDoc, arrayUnion, getFirestore } from "firebase/firestore";
+import { getFirestore } from "firebase/firestore";
 
 const db = getFirestore();
 const auth = getAuth();
@@ -72,6 +75,7 @@ const MacroChecker = ({ navigation }: { navigation: any }) => {
       const response = await fetch(
         `https://world.openfoodfacts.org/api/v0/product/${barcode}.json`
       );
+      // console.log(response);
       const data = await response.json();
       // console.log(data);
       if (data.product) {
@@ -111,7 +115,7 @@ const MacroChecker = ({ navigation }: { navigation: any }) => {
         );
       }
     } catch (error) {
-      console.error("Failed to fetch product info: ", error);
+      // console.error("Failed to fetch product info: ", error);
       Alert.alert("Failed to fetch product info");
     }
   };
@@ -259,7 +263,7 @@ const styles = StyleSheet.create({
   grantText: {
     color: "#000",
     fontSize: 24,
-        fontFamily: "SFProRounded-Heavy",
+    fontFamily: "SFProRounded-Heavy",
     textAlign: "center",
   },
   scanButton: {

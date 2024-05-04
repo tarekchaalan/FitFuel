@@ -1,3 +1,6 @@
+// Tarek Chaalan
+// Project Completed: May 3, 2024
+
 import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
@@ -15,21 +18,13 @@ import {
 } from "react-native";
 import { HomeIcon, WorkoutIcon, MealIcon, SmallEditIcon } from "../svgs";
 import Svg, { Path } from "react-native-svg";
+import { getFirestore, doc, updateDoc, onSnapshot } from "firebase/firestore";
 import {
-  getFirestore,
-  doc,
-  updateDoc,
-  writeBatch,
-  onSnapshot,
-} from "firebase/firestore";
-import {
-  getAuth,
   deleteUser,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
 } from "firebase/auth";
-import { getStorage, ref, listAll, deleteObject } from "firebase/storage";
 import { auth } from "../firebase";
 import { useUser } from "../UserContext";
 
@@ -45,6 +40,9 @@ const Profile = ({ navigation }: { navigation: any }) => {
     require("../assets/images/profile-placeholder.jpg")
   );
   const [editMode, setEditMode] = useState(false);
+  const [reauthModalVisible, setReauthModalVisible] = useState(false);
+  const [reauthEmail, setReauthEmail] = useState("");
+  const [reauthPassword, setReauthPassword] = useState("");
   const [editField, setEditField] = useState({
     field: "",
     value: "",
@@ -67,7 +65,7 @@ const Profile = ({ navigation }: { navigation: any }) => {
         Alert.alert("Success", "Your information has been updated.");
         // Update local state or context if necessary
       } catch (error) {
-        console.error("Failed to update user info:", error);
+        // console.error("Failed to update user info:", error);
         Alert.alert("Error", "Failed to update information.");
       }
     }
@@ -101,7 +99,7 @@ const Profile = ({ navigation }: { navigation: any }) => {
       await sendPasswordResetEmail(auth, email);
       Alert.alert("Password reset email sent successfully.");
     } catch (error) {
-      console.error("Failed to send password reset email:", error);
+      // console.error("Failed to send password reset email:", error);
       Alert.alert("Failed to send password reset email. Please try again.");
     }
   };
@@ -109,140 +107,43 @@ const Profile = ({ navigation }: { navigation: any }) => {
   const handleSignOut = () => {
     signOut(auth)
       .then(() => navigation.navigate("Login"))
-      .catch((error) => console.error("Sign out error:", error));
+      // .catch((error) => console.error("Sign out error:", error));
   };
 
-  const deleteUserFirestoreData = async (userId: string) => {
-    const db = getFirestore();
-    const collections = [
-      "Gyms",
-      "IngredientsList",
-      "MacroBarcodeScans",
-      "data",
-      "mealDetails",
-      "preferences",
-      "progressUpdates",
-      "users",
-      "workoutDetails",
-    ];
-    const batch = writeBatch(db);
-
-    collections.forEach((collectionName) => {
-      const docRef = doc(db, collectionName, userId);
-      batch.delete(docRef);
-    });
-
-    await batch.commit(); // Execute the batch delete
-  };
-
-  const deleteUserStorageData = async (userId: string) => {
-    const storage = getStorage();
-    const directories = ["GymEquipment", "profilePictures", "progressUpdates"];
-
-    directories.forEach(async (dir) => {
-      const dirRef = ref(storage, `${dir}/${userId}`);
-      try {
-        const fileList = await listAll(dirRef);
-        const deletePromises = fileList.items.map((item) => deleteObject(item));
-        await Promise.all(deletePromises);
-      } catch (error) {
-        console.error(
-          `Failed to delete storage contents from ${dir}/${userId}:`,
-          error
-        );
-        throw error; // Rethrow to handle in the main function
-      }
-    });
-  };
-
-  const reauthenticateWithEmailPassword = async () => {
-    return new Promise((resolve, reject) => {
-      // Prompt the user to enter their email and password for reauthentication
-      // You can use a modal or any UI component to collect the user's credentials
-      // Here, we're using TextInput for simplicity
-
-      let email = "";
-      let password = "";
-
-      // Function to handle reauthentication with email and password
-      const handleReauthentication = async () => {
-        try {
-          // Sign in the user with their email and password
-          await signInWithEmailAndPassword(auth, email, password);
-          resolve(true); // Resolve with true if reauthentication is successful
-        } catch (error) {
-          console.error("Reauthentication failed:", error);
-          reject(error); // Reject with the error if reauthentication fails
-        }
-      };
-
-      // Show a modal or UI component to collect the user's email and password
-      // For example, using TextInput:
-      Alert.prompt(
-        "Reauthentication",
-        "Please enter your email and password to reauthenticate:",
-        [
-          {
-            text: "Cancel",
-            onPress: () => resolve(false), // Resolve with false if the user cancels
-            style: "cancel",
-          },
-          {
-            text: "Submit",
-            onPress: () => handleReauthentication(),
-          },
-        ],
-        "login-password" // This prompts the user to enter their email and password
+  const handleReauthentication = async () => {
+    try {
+      // console.log(`Reauthenticating with email: ${reauthEmail}`); // Debug log
+      await signInWithEmailAndPassword(auth, reauthEmail, reauthPassword);
+      // console.log("Reauthentication successful");
+      setReauthModalVisible(false);
+      proceedWithAccountDeletion(); // Proceed to delete after successful reauthentication
+    } catch (error) {
+      // console.error("Reauthentication failed:", error);
+      Alert.alert(
+        "Reauthentication failed",
+        "Check your credentials and try again."
       );
-    });
+    }
   };
 
-  const deleteUserAccount = async () => {
-    const user = auth.currentUser;
+  // Function that handles the actual deletion after reauthentication
+  const proceedWithAccountDeletion = async () => {
     if (!user) {
       Alert.alert("Error", "No user found.");
       return;
     }
 
-    // Prompt the user to reauthenticate with email and password
     try {
-      const isReauthenticated = await reauthenticateWithEmailPassword();
-      if (isReauthenticated) {
-        // Proceed with account deletion if reauthentication is successful
-        try {
-          await deleteUserFirestoreData(user.uid);
-          await deleteUserStorageData(user.uid);
+      await deleteUser(user);
 
-          deleteUser(user)
-            .then(() => {
-              Alert.alert(
-                "Account Deleted",
-                "Your account has been successfully deleted."
-              );
-              navigation.navigate("Login");
-            })
-            .catch((error) => {
-              console.error(
-                "Error deleting user authentication record:",
-                error
-              );
-              Alert.alert("Error", "Failed to delete user account.");
-            });
-        } catch (error) {
-          console.error("Failed to delete all user data:", error);
-          Alert.alert(
-            "Error",
-            "Deletion failed, some data may not have been deleted."
-          );
-        }
-      } else {
-        // Handle reauthentication cancellation or failure
-        Alert.alert("Error", "Reauthentication canceled or failed.");
-      }
+      Alert.alert(
+        "Account Deleted",
+        "Your account has been successfully deleted."
+      );
+      navigation.navigate("Login");
     } catch (error) {
-      // Handle reauthentication error
-      console.error("Reauthentication failed:", error);
-      Alert.alert("Error", "Reauthentication failed.");
+      // console.error("Error deleting user authentication record:", error);
+      Alert.alert("Error", "Failed to delete user account.");
     }
   };
 
@@ -356,7 +257,7 @@ const Profile = ({ navigation }: { navigation: any }) => {
             <View style={styles.buttonsRow3}>
               <TouchableOpacity
                 style={styles.buttonCenterRed}
-                onPress={() => deleteUserAccount()}
+                onPress={() => setReauthModalVisible(true)}
               >
                 <Text style={styles.buttonTextCenterRed}>DELETE ACCOUNT</Text>
               </TouchableOpacity>
@@ -417,6 +318,33 @@ const Profile = ({ navigation }: { navigation: any }) => {
               <Button title="Save" onPress={handleUpdate} />
             </View>
           </TouchableOpacity>
+        </Modal>
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={reauthModalVisible}
+          onRequestClose={() => setReauthModalVisible(false)}
+        >
+          <View style={styles.centeredView}>
+            <View style={styles.modalContent}>
+              <TextInput
+                style={styles.input}
+                onChangeText={setReauthEmail}
+                value={reauthEmail}
+                placeholder="Enter email"
+                placeholderTextColor={"#A9A9A9"}
+              />
+              <TextInput
+                style={styles.input}
+                onChangeText={setReauthPassword}
+                value={reauthPassword}
+                placeholder="Enter password"
+                placeholderTextColor={"#A9A9A9"}
+                secureTextEntry
+              />
+              <Button title="Reauthenticate" onPress={handleReauthentication} />
+            </View>
+          </View>
         </Modal>
       </SafeAreaView>
     </View>

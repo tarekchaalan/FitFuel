@@ -1,12 +1,12 @@
+// Tarek Chaalan
+// Project Completed: May 3, 2024
+
 import React from "react";
 import {
   StyleSheet,
   Text,
   View,
-  Image,
   TouchableOpacity,
-  ScrollView,
-  Dimensions,
   SafeAreaView,
   StatusBar,
 } from "react-native";
