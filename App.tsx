@@ -49,17 +49,17 @@ function App() {
       try {
         await SplashScreen.preventAutoHideAsync();
         await Font.loadAsync({
-          "SFProText-Heavy": require("./assets/fonts/SF Pro Text/SF-Pro-Text-Heavy.otf"),
-          "SFProText-Regular": require("./assets/fonts/SF Pro Text/SF-Pro-Text-Regular.otf"),
-          "SFProText-Light": require("./assets/fonts/SF Pro Text/SF-Pro-Text-Light.otf"),
-          "SFProText-Ultralight": require("./assets/fonts/SF Pro Text/SF-Pro-Text-Ultralight.otf"),
-          "SFProRounded-Heavy": require("./assets/fonts/SF Pro Rounded/SF-Pro-Rounded-Heavy.otf"),
-          "SFProRounded-Regular": require("./assets/fonts/SF Pro Rounded/SF-Pro-Rounded-Regular.otf"),
-          "SFProRounded-Light": require("./assets/fonts/SF Pro Rounded/SF-Pro-Rounded-Light.otf"),
-          "SFProRounded-Ultralight": require("./assets/fonts/SF Pro Rounded/SF-Pro-Rounded-Ultralight.otf"),
+          "SFProText-Heavy": require("./assets/fonts/SFProText/SFProTextHeavy.otf"),
+          "SFProText-Regular": require("./assets/fonts/SFProText/SFProTextRegular.otf"),
+          "SFProText-Light": require("./assets/fonts/SFProText/SFProTextLight.otf"),
+          "SFProText-Ultralight": require("./assets/fonts/SFProText/SFProTextUltralight.otf"),
+          "SFProRounded-Heavy": require("./assets/fonts/SFProRounded/SFProRoundedHeavy.otf"),
+          "SFProRounded-Regular": require("./assets/fonts/SFProRounded/SFProRoundedRegular.otf"),
+          "SFProRounded-Light": require("./assets/fonts/SFProRounded/SFProRoundedLight.otf"),
+          "SFProRounded-Ultralight": require("./assets/fonts/SFProRounded/SFProRoundedUltralight.otf"),
         });
-      } catch (e) {
-        console.warn("Failed to load fonts", e);
+      } catch (error) {
+        console.warn("Failed to load fonts", error);
       } finally {
         setFontsLoaded(true);
         await SplashScreen.hideAsync();
