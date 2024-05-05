@@ -164,7 +164,7 @@ const Login = ({ navigation }: { navigation: any }) => {
         <View style={styles.inputContainer}>
           <View style={styles.inputFieldContainer}>
             <TextInput
-              placeholder="Email or Username"
+              placeholder="Username"
               value={identifier}
               onChangeText={(text) => setidentifier(text)}
               placeholderTextColor="#aaaaaa"
