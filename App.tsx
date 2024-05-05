@@ -47,6 +47,7 @@ function App() {
   useEffect(() => {
     async function prepare() {
       try {
+        await SplashScreen.preventAutoHideAsync(); // Ensure the splash screen stays visible until fonts are loaded
         await Font.loadAsync({
           // Assuming you have these fonts or replace with your own
           "SFProText-Heavy": require("./assets/fonts/SF Pro Text/SF-Pro-Text-Heavy.otf"),
@@ -59,10 +60,10 @@ function App() {
           "SFProRounded-Ultralight": require("./assets/fonts/SF Pro Rounded/SF-Pro-Rounded-Ultralight.otf"),
         });
       } catch (e) {
-        // console.warn(e);
+        console.warn("Failed to load fonts", e);
       } finally {
         setFontsLoaded(true);
-        SplashScreen.hideAsync();
+        await SplashScreen.hideAsync();
       }
     }
     prepare();
