@@ -1,8 +1,7 @@
 {
   "expo": {
-    "name": "Fit-Fuel",
-    "displayName": "Fit-Fuel",
-    "slug": "FitFuel",
+    "name": "fit-fuel",
+    "slug": "fit-fuel",
     "privacy": "unlisted",
     "version": "1.0.0",
     "orientation": "portrait",

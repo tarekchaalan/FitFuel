@@ -1,5 +1,6 @@
 {
-  "name": "fitfuel",
+  "name": "fit-fuel",
+  "displayName": "fit-fuel",
   "version": "1.0.0",
   "scripts": {
     "start": "expo start --dev-client",

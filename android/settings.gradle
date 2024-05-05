@@ -1,4 +1,4 @@
-rootProject.name = 'FitFuel'
+rootProject.name = 'fit-fuel'
 
 dependencyResolutionManagement {
   versionCatalogs {
