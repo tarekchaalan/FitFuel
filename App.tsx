@@ -8,6 +8,7 @@ import * as SplashScreen from "expo-splash-screen";
 import * as Font from "expo-font";
 import { auth } from "./firebase";
 import { UserProvider } from "./UserContext";
+import { View, ActivityIndicator, StyleSheet } from "react-native";
 
 // Import all screens
 import Login from "./screens/Login";
@@ -41,15 +42,13 @@ interface User {
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
-  const [initialRoute, setInitialRoute] = useState("Dashboard");
   const [fontsLoaded, setFontsLoaded] = useState(false);
 
   useEffect(() => {
-    async function prepare() {
+    async function loadFonts() {
       try {
-        await SplashScreen.preventAutoHideAsync(); // Ensure the splash screen stays visible until fonts are loaded
+        await SplashScreen.preventAutoHideAsync();
         await Font.loadAsync({
-          // Assuming you have these fonts or replace with your own
           "SFProText-Heavy": require("./assets/fonts/SF Pro Text/SF-Pro-Text-Heavy.otf"),
           "SFProText-Regular": require("./assets/fonts/SF Pro Text/SF-Pro-Text-Regular.otf"),
           "SFProText-Light": require("./assets/fonts/SF Pro Text/SF-Pro-Text-Light.otf"),
@@ -66,24 +65,22 @@ function App() {
         await SplashScreen.hideAsync();
       }
     }
-    prepare();
+    loadFonts();
   }, []);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
       setUser(currentUser);
-      if (currentUser) {
-        setInitialRoute("Dashboard");
-      } else {
-        setInitialRoute("Login");
-      }
     });
-
-    return unsubscribe;
+    return () => unsubscribe();
   }, []);
 
   if (!fontsLoaded) {
-    return null;
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
   }
 
   return (
@@ -135,5 +132,14 @@ function App() {
     </UserProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#000",
+  },
+});
 
 export default App;
