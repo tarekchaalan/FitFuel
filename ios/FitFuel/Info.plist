@@ -35,6 +35,17 @@
     <string>1</string>
     <key>LSRequiresIPhoneOS</key>
     <true/>
+    <key>UIAppFonts</key>
+    <array>
+      <string>SF-Pro-Text-Heavy.otf</string>
+      <string>SF-Pro-Text-Regular.otf</string>
+      <string>SF-Pro-Text-Light.otf</string>
+      <string>SF-Pro-Text-Ultralight.otf</string>
+      <string>SF-Pro-Rounded-Heavy.otf</string>
+      <string>SF-Pro-Rounded-Regular.otf</string>
+      <string>SF-Pro-Rounded-Light.otf</string>
+      <string>SF-Pro-Rounded-Ultralight.otf</string>
+    </array>
     <key>NSAppTransportSecurity</key>
     <dict>
       <key>NSAllowsArbitraryLoads</key>
